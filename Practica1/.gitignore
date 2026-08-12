@@ -1,0 +1,36 @@
+# ===== Python =====
+__pycache__/
+*.py[cod]
+*$py.class
+*.pyo
+
+# ===== Entorno virtual =====
+venv/
+.venv/
+env/
+.env
+*.env
+
+# ===== Datos crudos pesados (no versionar) =====
+# data/raw/  ← descomenta si el dataset es >100 MB
+
+# ===== Logs generados =====
+logs/*.log
+
+# ===== Datos procesados temporales =====
+data/processed/*.csv
+data/processed/*.parquet
+
+# ===== IDEs =====
+.vscode/
+.idea/
+*.swp
+
+# ===== Sistema operativo =====
+.DS_Store
+Thumbs.db
+
+# ===== Cobertura y tests =====
+.coverage
+htmlcov/
+.pytest_cache/

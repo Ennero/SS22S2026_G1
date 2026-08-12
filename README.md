@@ -7,4 +7,4 @@
 
 ## Carpetas:
 
-- [Practica1](./Practica1)
+- [Practica 1](./Practica1)
