@@ -1,0 +1,8 @@
+# Tarea 1 — Limpieza y análisis inicial de datos
+# Python 3.10+
+# Instalar con: pip install -r requirements.txt
+
+pandas>=2.0.0
+numpy>=1.24.0
+matplotlib>=3.7.0
+seaborn>=0.12.0
