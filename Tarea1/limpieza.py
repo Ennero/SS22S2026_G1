@@ -24,6 +24,7 @@ if "--no-pausa" in sys.argv:
     matplotlib.use("Agg")
 
 import matplotlib.pyplot as plt
+import matplotlib.ticker as ticker
 import numpy as np
 import pandas as pd
 import seaborn as sns
@@ -137,7 +138,12 @@ def limpiar_ciudades(serie: pd.Series) -> pd.Series:
     return texto.mask(vacios, "Desconocido")
 
 
-def mostrar_grafico(fig: plt.Figure) -> None:
+def mostrar_grafico(fig: plt.Figure, nombre_archivo: str | None = None) -> None:
+    if nombre_archivo:
+        ruta = BASE_DIR / "img" / nombre_archivo
+        ruta.parent.mkdir(parents=True, exist_ok=True)
+        fig.savefig(ruta, dpi=300, bbox_inches="tight")
+        print(f"Grafico guardado automaticamente en: {ruta}")
     if PAUSAR:
         plt.show()
     plt.close(fig)
@@ -199,9 +205,9 @@ def main() -> int:
     print(f"Filas duplicadas exactas: {int(df.duplicated().sum())}")
     print(f"id_cliente duplicados: {int(df['id_cliente'].duplicated().sum())}")
     print()
-    print("Valores únicos de genero:", sorted(df["genero"].astype(str).str.strip().unique().tolist()))
-    print("Valores únicos de categoria:", sorted(df["categoria"].astype(str).str.strip().unique().tolist()))
-    print("Muestra de ciudades:", sorted(df["ciudad"].astype(str).str.strip().unique().tolist())[:15])
+    print("Valores únicos de genero:", sorted(set(str(x).strip() for x in df["genero"] if pd.notna(x) and str(x).strip())))
+    print("Valores únicos de categoria:", sorted(set(str(x).strip() for x in df["categoria"] if pd.notna(x) and str(x).strip())))
+    print("Muestra de ciudades:", sorted(set(str(x).strip() for x in df["ciudad"] if pd.notna(x) and str(x).strip()))[:15])
     nulos_antes = nulos_por_columna(df)
     esperar()
 
@@ -405,55 +411,260 @@ def main() -> int:
     esperar()
 
     # ------------------------------------------------------------------
-    # PASO 7 — Gráfico de gasto
+    # PASO 7 — Gráfico 1: Calidad de datos y rendimiento por categoría
     # ------------------------------------------------------------------
-    paso(7, "Visualización: gasto por categoría", "07_grafico_gasto.png")
+    paso(7, "Visualización: calidad de datos y rendimiento por categoría", "07_grafico_gasto.png")
 
-    fig1, axes = plt.subplots(1, 2, figsize=(12, 5))
-    comparacion = pd.DataFrame({"Antes": nulos_antes, "Después": nulos_despues})
-    comparacion.plot(kind="bar", ax=axes[0], color=["#c0392b", "#27ae60"])
-    axes[0].set_title("Nulos por columna: antes vs después")
-    axes[0].set_ylabel("Cantidad de nulos")
-    axes[0].tick_params(axis="x", rotation=30)
+    fig1, axes = plt.subplots(1, 2, figsize=(16, 6.8))
+    fig1.patch.set_facecolor("#fafbfc")
 
+    # Subplot 1: Nulos antes vs después
+    ax1 = axes[0]
+    ax1.set_facecolor("#ffffff")
+    columnas_plot = [col for col in df_original.columns]
+    nulos_antes_vals = [nulos_antes[col] for col in columnas_plot]
+    nulos_despues_vals = [nulos_despues[col] for col in columnas_plot]
+
+    x_pos = np.arange(len(columnas_plot))
+    ancho_barra = 0.36
+
+    bars1 = ax1.bar(x_pos - ancho_barra / 2, nulos_antes_vals, width=ancho_barra, label="Antes (Datos Sucios)", color="#e74c3c", edgecolor="#c0392b", alpha=0.9)
+    bars2 = ax1.bar(x_pos + ancho_barra / 2, nulos_despues_vals, width=ancho_barra, label="Después (Datos Limpios)", color="#27ae60", edgecolor="#1e8449", alpha=0.9)
+
+    ax1.set_title("Auditoría de Calidad: Valores Nulos / Faltantes", fontsize=13, fontweight="bold", pad=14, color="#2c3e50")
+    ax1.set_xlabel("Columnas del Dataset", fontsize=11, fontweight="bold", labelpad=8)
+    ax1.set_ylabel("Cantidad de Registros Nulos", fontsize=11, fontweight="bold", labelpad=8)
+    ax1.set_xticks(x_pos)
+    ax1.set_xticklabels(columnas_plot, rotation=25, ha="right", fontsize=10, fontweight="medium")
+    ax1.set_ylim(0, max(nulos_antes_vals) * 1.30)
+    ax1.grid(axis="y", linestyle="--", alpha=0.5)
+
+    # Etiquetas directas en las barras
+    for bar in bars1:
+        h = bar.get_height()
+        if h > 0:
+            ax1.annotate(f"{int(h):,}", (bar.get_x() + bar.get_width() / 2, h),
+                         ha="center", va="bottom", fontsize=9.5, fontweight="bold", color="#c0392b", xytext=(0, 3), textcoords="offset points")
+
+    for bar in bars2:
+        h = bar.get_height()
+        if h > 0:
+            ax1.annotate(f"{int(h)}", (bar.get_x() + bar.get_width() / 2, h),
+                         ha="center", va="bottom", fontsize=9.5, fontweight="bold", color="#1e8449", xytext=(0, 3), textcoords="offset points")
+        else:
+            ax1.annotate("0", (bar.get_x() + bar.get_width() / 2, 0),
+                         ha="center", va="bottom", fontsize=8.5, fontweight="bold", color="#27ae60", xytext=(0, 2), textcoords="offset points")
+
+    # Caja de resumen de eficacia
+    total_nulos_resueltos = sum(nulos_antes_vals) - sum(nulos_despues_vals)
+    ax1.text(0.97, 0.94, f"Nulos Resueltos: {total_nulos_resueltos:,}\nEficacia: 100% Tratados",
+             transform=ax1.transAxes, fontsize=9.5, fontweight="bold",
+             va="top", ha="right", bbox=dict(boxstyle="round,pad=0.5", facecolor="#e8f8f5", edgecolor="#27ae60", alpha=0.95))
+    ax1.legend(loc="upper left", frameon=True, facecolor="#ffffff", edgecolor="#bdc3c7")
+
+    # Subplot 2: Gasto total y métricas por categoría
+    ax2 = axes[1]
+    ax2.set_facecolor("#ffffff")
     gasto_cat = (
-        df.groupby("categoria", as_index=False)["gasto_q"]
-        .sum()
-        .sort_values("gasto_q", ascending=False)
+        df.groupby("categoria")
+        .agg(gasto_total=("gasto_q", "sum"), clientes=("id_cliente", "count"), gasto_medio=("gasto_q", "mean"))
+        .sort_values("gasto_total", ascending=False)
+        .reset_index()
     )
-    sns.barplot(data=gasto_cat, x="categoria", y="gasto_q", ax=axes[1], color="#2980b9")
-    axes[1].set_title("Gasto total (Q) por categoría")
-    axes[1].set_xlabel("Categoría")
-    axes[1].set_ylabel("Gasto total (Q)")
+    gasto_total_general = gasto_cat["gasto_total"].sum()
+    gasto_cat["pct_total"] = (gasto_cat["gasto_total"] / gasto_total_general) * 100
+
+    colores_cat = ["#1b4f72", "#2874a6", "#3498db", "#5dade2"]
+    bars_cat = ax2.bar(gasto_cat["categoria"], gasto_cat["gasto_total"], color=colores_cat, edgecolor="#154360", alpha=0.9, width=0.52)
+
+    ax2.set_title("Rendimiento Financiero: Gasto Total por Categoría", fontsize=13, fontweight="bold", pad=14, color="#2c3e50")
+    ax2.set_xlabel("Categoría de Negocio", fontsize=11, fontweight="bold", labelpad=8)
+    ax2.set_ylabel("Gasto Total Acumulado (Q)", fontsize=11, fontweight="bold", labelpad=8)
+    ax2.yaxis.set_major_formatter(ticker.FuncFormatter(lambda x, p: f"Q {x*1e-3:,.0f}k"))
+    ax2.set_ylim(0, gasto_cat["gasto_total"].max() * 1.38)
+    ax2.grid(axis="y", linestyle="--", alpha=0.5)
+
+    # Línea de promedio por categoría
+    promedio_cat = gasto_cat["gasto_total"].mean()
+    ax2.axhline(promedio_cat, color="#e67e22", linestyle="--", linewidth=1.6,
+                label=f"Promedio por Categoría: Q {promedio_cat:,.2f}")
+
+    # Etiquetas detalladas en cada barra
+    for i, row in gasto_cat.iterrows():
+        val = row["gasto_total"]
+        pct = row["pct_total"]
+        clts = int(row["clientes"])
+        ticket = row["gasto_medio"]
+        ax2.annotate(f"Q {val:,.2f}\n({pct:.1f}% del total)\n{clts:,} clts · Ticket: Q {ticket:.2f}",
+                     (i, val), ha="center", va="bottom", fontsize=8.5, fontweight="bold",
+                     color="#1a252f", xytext=(0, 5), textcoords="offset points")
+
+    ax2.legend(loc="upper right", frameon=True, facecolor="#ffffff", edgecolor="#bdc3c7")
     fig1.tight_layout()
-    mostrar_grafico(fig1)
-    print("Gráfico 1: nulos antes/después y gasto total por categoría.")
+    mostrar_grafico(fig1, "07_grafico_gasto.png")
+    print("Gráfico 1: Calidad de datos (nulos antes vs después) y Gasto total por categoría.")
     esperar()
 
     # ------------------------------------------------------------------
-    # PASO 8 — Gráfico de género y ciudad
+    # PASO 8 — Gráfico 2: Género y distribución geográfica (ciudades)
     # ------------------------------------------------------------------
-    paso(8, "Visualización: género y ciudad", "08_grafico_genero.png")
+    paso(8, "Visualización: demografía y distribución geográfica", "08_grafico_genero.png")
 
-    fig2, axes = plt.subplots(1, 2, figsize=(12, 5))
-    orden_gen = df["genero"].value_counts()
-    sns.barplot(x=orden_gen.index, y=orden_gen.values, ax=axes[0], color="#8e44ad")
-    axes[0].set_title("Distribución de clientes por género")
-    axes[0].set_xlabel("Género")
-    axes[0].set_ylabel("Clientes")
+    fig2, axes = plt.subplots(1, 2, figsize=(16, 6.8))
+    fig2.patch.set_facecolor("#fafbfc")
 
-    gasto_ciudad = (
-        df.groupby("ciudad", as_index=False)["gasto_q"]
-        .sum()
-        .sort_values("gasto_q", ascending=False)
+    # Subplot 1: Distribución por género (Conteo, % y Ticket)
+    ax1 = axes[0]
+    ax1.set_facecolor("#ffffff")
+    genero_df = (
+        df.groupby("genero")
+        .agg(clientes=("id_cliente", "count"), gasto_total=("gasto_q", "sum"), gasto_medio=("gasto_q", "mean"))
+        .reindex(["F", "M", "Desconocido"])
+        .reset_index()
     )
-    sns.barplot(data=gasto_ciudad, x="gasto_q", y="ciudad", ax=axes[1], color="#16a085")
-    axes[1].set_title("Gasto total (Q) por ciudad")
-    axes[1].set_xlabel("Gasto total (Q)")
-    axes[1].set_ylabel("Ciudad")
+    genero_df["pct_clientes"] = (genero_df["clientes"] / len(df)) * 100
+    genero_df["pct_gasto"] = (genero_df["gasto_total"] / df["gasto_q"].sum()) * 100
+
+    colores_gen = {"F": "#8e44ad", "M": "#2980b9", "Desconocido": "#7f8c8d"}
+    palette_gen = [colores_gen[g] for g in genero_df["genero"]]
+
+    bars_gen = ax1.bar(genero_df["genero"], genero_df["clientes"], color=palette_gen, edgecolor="#2c3e50", alpha=0.9, width=0.48)
+
+    ax1.set_title("Estructura Demográfica: Clientes por Género", fontsize=13, fontweight="bold", pad=14, color="#2c3e50")
+    ax1.set_xlabel("Género del Cliente", fontsize=11, fontweight="bold", labelpad=8)
+    ax1.set_ylabel("Cantidad de Clientes", fontsize=11, fontweight="bold", labelpad=8)
+    ax1.set_ylim(0, genero_df["clientes"].max() * 1.30)
+    ax1.grid(axis="y", linestyle="--", alpha=0.5)
+
+    for i, row in genero_df.iterrows():
+        clts = int(row["clientes"])
+        pct = row["pct_clientes"]
+        g_tot = row["gasto_total"]
+        tkt = row["gasto_medio"]
+        ax1.annotate(f"{clts:,} clientes ({pct:.1f}%)\nGasto: Q {g_tot:,.2f}\nTicket Medio: Q {tkt:.2f}",
+                     (i, clts), ha="center", va="bottom", fontsize=9, fontweight="bold",
+                     color="#2c3e50", xytext=(0, 5), textcoords="offset points")
+
+    # Subplot 2: Gasto por ciudad ordenado con ticket promedio
+    ax2 = axes[1]
+    ax2.set_facecolor("#ffffff")
+    ciudad_df = (
+        df.groupby("ciudad")
+        .agg(gasto_total=("gasto_q", "sum"), clientes=("id_cliente", "count"), gasto_medio=("gasto_q", "mean"))
+        .sort_values("gasto_total", ascending=True)
+        .reset_index()
+    )
+
+    colores_ciudad = [
+        "#95a5a6" if c == "Desconocido" else "#16a085" for c in ciudad_df["ciudad"]
+    ]
+    y_pos = np.arange(len(ciudad_df))
+    bars_ciu = ax2.barh(y_pos, ciudad_df["gasto_total"], color=colores_ciudad, edgecolor="#0e6655", alpha=0.88, height=0.60)
+
+    ax2.set_title("Distribución Geográfica: Gasto Total por Ciudad", fontsize=13, fontweight="bold", pad=14, color="#2c3e50")
+    ax2.set_xlabel("Gasto Total Acumulado (Q)", fontsize=11, fontweight="bold", labelpad=8)
+    ax2.set_ylabel("Ciudad", fontsize=11, fontweight="bold", labelpad=8)
+    ax2.set_yticks(y_pos)
+    ax2.set_yticklabels(ciudad_df["ciudad"], fontsize=10, fontweight="medium")
+    ax2.xaxis.set_major_formatter(ticker.FuncFormatter(lambda x, p: f"Q {x*1e-3:,.0f}k"))
+    ax2.set_xlim(0, ciudad_df["gasto_total"].max() * 1.38)
+    ax2.grid(axis="x", linestyle="--", alpha=0.5)
+
+    media_ciudad = ciudad_df["gasto_total"].mean()
+    ax2.axvline(media_ciudad, color="#c0392b", linestyle="--", linewidth=1.6,
+                label=f"Media por Ciudad: Q {media_ciudad:,.2f}")
+
+    for i, row in ciudad_df.iterrows():
+        val = row["gasto_total"]
+        clts = int(row["clientes"])
+        tkt = row["gasto_medio"]
+        ax2.annotate(f" Q {val:,.2f}  ({clts} clts · Ticket: Q {tkt:.2f})",
+                     (val, i), ha="left", va="center", fontsize=8.5, fontweight="bold",
+                     color="#1a252f")
+
+    ax2.legend(loc="lower right", frameon=True, facecolor="#ffffff", edgecolor="#bdc3c7")
     fig2.tight_layout()
-    mostrar_grafico(fig2)
-    print("Gráfico 2: distribución por género y gasto total por ciudad.")
+    mostrar_grafico(fig2, "08_grafico_genero.png")
+    print("Gráfico 2: Demografía por género y Distribución geográfica de gasto por ciudad.")
+    esperar()
+
+    # ------------------------------------------------------------------
+    # PASO 9 — Gráfico 3: Cruce multivariable Ciudad x Categoría y Dispersión
+    # ------------------------------------------------------------------
+    paso(9, "Visualización: cruce multivariable y distribución de gasto", "09_grafico_cruce.png")
+
+    fig3, axes = plt.subplots(1, 2, figsize=(16, 6.8))
+    fig3.patch.set_facecolor("#fafbfc")
+
+    # Subplot 1: Heatmap Ciudad x Categoría (Gasto Total Q)
+    ax1 = axes[0]
+    cruce_data = pd.pivot_table(
+        df,
+        values="gasto_q",
+        index="ciudad",
+        columns="categoria",
+        aggfunc="sum",
+        fill_value=0,
+    )
+    orden_ciudades = df.groupby("ciudad")["gasto_q"].sum().sort_values(ascending=False).index
+    cruce_data = cruce_data.loc[orden_ciudades]
+
+    # Crear anotaciones formateadas en array 2D
+    annot_array = np.empty(cruce_data.shape, dtype=object)
+    for r in range(cruce_data.shape[0]):
+        for c in range(cruce_data.shape[1]):
+            val = cruce_data.iloc[r, c]
+            annot_array[r, c] = f"Q {val*1e-3:,.1f}k\n({val:,.0f})"
+
+    sns.heatmap(
+        cruce_data,
+        annot=annot_array,
+        fmt="",
+        cmap="YlGnBu",
+        linewidths=1.2,
+        linecolor="#ffffff",
+        cbar_kws={"label": "Gasto Total en Quetzales (Q)", "format": ticker.FuncFormatter(lambda x, p: f"Q {x*1e-3:,.0f}k")},
+        ax=ax1,
+    )
+    ax1.set_title("Cruce Multivariable: Gasto Total por Ciudad y Categoría", fontsize=13, fontweight="bold", pad=14, color="#2c3e50")
+    ax1.set_xlabel("Categoría de Negocio", fontsize=11, fontweight="bold", labelpad=8)
+    ax1.set_ylabel("Ciudad (ordenada por gasto total)", fontsize=11, fontweight="bold", labelpad=8)
+    ax1.tick_params(axis="x", rotation=0)
+    ax1.tick_params(axis="y", rotation=0)
+
+    # Subplot 2: Dispersión y distribución de gasto individual por categoría
+    ax2 = axes[1]
+    ax2.set_facecolor("#ffffff")
+    sns.boxplot(
+        data=df,
+        x="categoria",
+        y="gasto_q",
+        palette=["#2980b9", "#27ae60", "#f39c12", "#8e44ad"],
+        ax=ax2,
+        showmeans=True,
+        meanprops={"marker": "D", "markerfacecolor": "white", "markeredgecolor": "#000000", "markersize": 7},
+    )
+    ax2.set_title("Distribución y Dispersión del Gasto por Cliente", fontsize=13, fontweight="bold", pad=14, color="#2c3e50")
+    ax2.set_xlabel("Categoría de Negocio", fontsize=11, fontweight="bold", labelpad=8)
+    ax2.set_ylabel("Gasto Individual del Cliente (Q)", fontsize=11, fontweight="bold", labelpad=8)
+    ax2.yaxis.set_major_formatter(ticker.FuncFormatter(lambda x, p: f"Q {x:,.0f}"))
+    ax2.set_ylim(-20, df["gasto_q"].max() * 1.15)
+    ax2.grid(axis="y", linestyle="--", alpha=0.5)
+
+    # Mediana global y elementos de leyenda personalizados
+    mediana_global = df["gasto_q"].median()
+    line_mediana = ax2.axhline(mediana_global, color="#e74c3c", linestyle=":", linewidth=1.6, label=f"Mediana Global: Q {mediana_global:.2f}")
+
+    from matplotlib.lines import Line2D
+    legend_elements = [
+        Line2D([0], [0], marker="D", color="w", label="Media Aritmética", markerfacecolor="white", markeredgecolor="black", markersize=7),
+        Line2D([0], [0], color="#e74c3c", linestyle=":", linewidth=1.6, label=f"Mediana Global (Q {mediana_global:.2f})"),
+    ]
+    ax2.legend(handles=legend_elements, loc="upper right", frameon=True, facecolor="#ffffff", edgecolor="#bdc3c7")
+
+    fig3.tight_layout()
+    mostrar_grafico(fig3, "09_grafico_cruce.png")
+    print("Gráfico 3: Matriz de calor Ciudad x Categoría y Boxplot de dispersión de gasto.")
     esperar()
 
     # ------------------------------------------------------------------

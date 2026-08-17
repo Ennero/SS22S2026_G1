@@ -8,11 +8,14 @@
 
 1. [Dataset utilizado](#1-dataset-utilizado)
 2. [Cómo ejecutar el script](#2-cómo-ejecutar-el-script)
-3. [Cómo tomar las capturas](#3-cómo-tomar-las-capturas)
+3. [Registro de evidencias y capturas](#3-registro-de-evidencias-y-capturas)
 4. [Proceso de limpieza](#4-proceso-de-limpieza)
 5. [Antes vs después](#5-antes-vs-después)
 6. [Tablas pivote](#6-tablas-pivote)
 7. [Visualizaciones](#7-visualizaciones)
+   - [7.1 Gráfico 1: Auditoría de Calidad y Rendimiento por Categoría](#71-gráfico-1-auditoría-de-calidad-y-rendimiento-por-categoría)
+   - [7.2 Gráfico 2: Estructura Demográfica y Distribución Geográfica](#72-gráfico-2-estructura-demográfica-y-distribución-geográfica)
+   - [7.3 Gráfico 3: Cruce Multivariable y Dispersión del Gasto](#73-gráfico-3-cruce-multivariable-ciudad--categoría-y-dispersión-del-gasto)
 8. [Interpretación de resultados](#8-interpretación-de-resultados)
 9. [Estructura de la carpeta](#9-estructura-de-la-carpeta)
 
@@ -45,7 +48,7 @@ python limpieza.py
 
 Eso corre **de verdad** sobre las 5000 filas: Pandas elimina duplicados, trata nulos, estandariza formatos, muestra pivotes, abre gráficos y guarda el CSV limpio.
 
-Si solo quieres regenerar el CSV, sin pausas ni ventanas:
+Si solo quieres regenerar el CSV y todas las figuras de una vez (sin pausas interactivas):
 
 ```bash
 python limpieza.py --no-pausa
@@ -53,27 +56,24 @@ python limpieza.py --no-pausa
 
 ---
 
-## 3. Cómo tomar las capturas
+## 3. Registro de evidencias y capturas
 
-El script se detiene en cada paso y te dice el nombre del archivo. Flujo:
+A continuación se detalla la relación de evidencias generadas durante la ejecución del flujo de preparación, limpieza y análisis:
 
-1. Ejecuta `python limpieza.py`.
-2. Cuando veas `>>> Toma la captura y presiona Enter...`, fotografía la terminal (o la ventana del gráfico).
-3. Guarda el PNG en `img/` **con el nombre exacto** que imprime el paso.
-4. Presiona Enter y sigue.
+- **Pasos 1 al 6**: Evidencias del estado del DataFrame y transformaciones en consola (carga, deduplicación, imputación de nulos, estandarización y tablas pivote).
+- **Pasos 7 al 9**: Visualizaciones analíticas y gráficos estadísticos **generados y guardados automáticamente por el script de Python** en la carpeta `img/` con resolución de 300 DPI.
 
-Cuando el archivo exista en `img/`, GitHub/Markdown lo muestra solo en este README. Mientras tanto, el hueco queda marcado.
-
-| Paso | Archivo a pegar en `img/` |
-|---|---|
-| 1. Dataset original | `01_dataframe_original.png` |
-| 2. Duplicados | `02_duplicados.png` |
-| 3. Celdas vacías | `03_nulos.png` |
-| 4. Estandarización | `04_estandarizacion.png` |
-| 5. Dataset depurado | `05_dataframe_limpio.png` |
-| 6. Pivotes | `06_pivote_categoria.png` |
-| 7. Gráfico de gasto | `07_grafico_gasto.png` |
-| 8. Gráfico de género | `08_grafico_genero.png` |
+| Paso | Archivo en `img/` | Origen / Tipo | Descripción |
+|---|---|---|---|
+| 1. Dataset original | `01_dataframe_original.png` | Captura de terminal | Estado sucio inicial con nulos, duplicados y formatos mixtos |
+| 2. Duplicados | `02_duplicados.png` | Captura de terminal | Eliminación de duplicados (5000 → 4900 registros únicos) |
+| 3. Celdas vacías | `03_nulos.png` | Captura de terminal | Imputación con mediana en `gasto_q` y tratamiento de `NA` |
+| 4. Estandarización | `04_estandarizacion.png` | Captura de terminal | Unificación de categorías, ciudades, fechas ISO y géneros |
+| 5. Dataset depurado | `05_dataframe_limpio.png` | Captura de terminal | Resumen comparativo antes vs. después |
+| 6. Pivotes | `06_pivote_categoria.png` | Captura de terminal | Tablas pivote de Pandas por categoría, ciudad, género y cruce |
+| 7. Calidad & Categoría | `07_grafico_gasto.png` | **Generado con Python** | Auditoría de nulos antes/después y Gasto total por categoría |
+| 8. Demografía & Ciudad | `08_grafico_genero.png` | **Generado con Python** | Demografía de género y Ranking de gasto por ciudad |
+| 9. Cruce Multivariable | `09_grafico_cruce.png` | **Generado con Python** | Heatmap Ciudad × Categoría y Boxplot de dispersión de gasto |
 
 ---
 
@@ -177,11 +177,50 @@ Quetzaltenango tiene más clientes (614) y el mayor gasto total (Q 158,604.89). 
 
 ## 7. Visualizaciones
 
-El script abre dos ventanas: nulos antes/después + gasto por categoría; y distribución por género + gasto por ciudad.
+Las visualizaciones fueron diseñadas con **alta resolución (300 DPI)**, formateo monetario en Quetzales (`Q`), etiquetas de datos directas, líneas de referencia estadística y paneles dobles analíticos para explorar las relaciones entre variables.
 
-![Gasto por categoría y nulos](./img/07_grafico_gasto.png)
+### 7.1 Gráfico 1: Auditoría de Calidad y Rendimiento por Categoría
 
-![Género y ciudad](./img/08_grafico_genero.png)
+![Calidad de datos y rendimiento por categoría](./img/07_grafico_gasto.png)
+
+- **Panel A (Auditoría de Calidad - Nulos Antes vs. Después)**:
+  - Muestra la efectividad del proceso de depuración por cada columna del dataset.
+  - En el estado sucio original existían **505 registros nulos en `gasto_q`**, **157 en `ciudad`** y **60 en `genero`** (722 nulos en total).
+  - Tras la limpieza y el tratamiento de tokens (`NA`, `null`, vacíos), el **100% de los campos fueron saneados** (0 nulos residuales).
+- **Panel B (Rendimiento Financiero por Categoría)**:
+  - Presenta el gasto total acumulado en Quetzales, la participación porcentual sobre el total general (`Q 1,231,515.93`), el conteo de clientes y el ticket promedio individual.
+  - **Food** lidera en facturación con **Q 319,926.29 (26.0%)** y 1,259 clientes, superando la línea de promedio global por categoría (**Q 307,878.98**).
+  - **Retail** ocupa el segundo lugar con **Q 308,629.24 (25.1%)**, seguido de **Education (Q 301,578.86 / 24.5%)** y **Services (Q 301,381.54 / 24.5%)**.
+
+---
+
+### 7.2 Gráfico 2: Estructura Demográfica y Distribución Geográfica
+
+![Demografía de género y distribución geográfica](./img/08_grafico_genero.png)
+
+- **Panel A (Demografía de Clientes y Gasto por Género)**:
+  - **Mujeres (F)**: Representan el **49.1%** de la base (2,406 clientes) con un gasto acumulado de **Q 595,887.58** y un ticket medio de **Q 247.67**.
+  - **Hombres (M)**: Representan el **48.6%** (2,381 clientes) aportando **Q 607,320.96** con un ticket medio superior de **Q 255.07**.
+  - **Desconocido**: 113 clientes (**2.3%**) con un gasto de **Q 28,307.39** (ticket medio Q 250.51), manteniendo la transparencia de los datos sin sesgar las categorías binarias.
+- **Panel B (Distribución Geográfica de Gasto por Ciudad)**:
+  - Ranking horizontal ordenado de facturación total contra la línea de media por ciudad (**Q 136,835.10**).
+  - **Quetzaltenango** es el mercado principal con **Q 158,604.89** y 614 clientes (Ticket: Q 258.31).
+  - **Escuintla** tiene el mayor ticket promedio por cliente (**Q 267.36**), totalizando **Q 150,258.21** con 562 clientes.
+  - Las ciudades de Amatitlán, Chimaltenango, Mixco, Antigua, Villa Nueva y Guatemala se mantienen consistentemente por encima de los Q 140,000.
+
+---
+
+### 7.3 Gráfico 3: Cruce Multivariable (Ciudad × Categoría) y Dispersión del Gasto
+
+![Cruce multivariable y dispersión de gasto](./img/09_grafico_cruce.png)
+
+- **Panel A (Matriz de Calor - Cruce Ciudad × Categoría)**:
+  - Visualización integral de la **Tabla Pivote 4**, reflejando la intensidad de facturación en Quetzales para cada combinación geográfica y comercial.
+  - Los nodos de mayor concentración de ventas se localizan en **Quetzaltenango × Food (Q 44.8k)**, **Quetzaltenango × Retail (Q 41.7k)**, **Mixco × Food (Q 40.4k)** y **Guatemala × Food (Q 40.0k)**.
+  - Evidencia que el rubro *Food* es transversalmente el motor de gasto en los principales núcleos urbanos.
+- **Panel B (Distribución y Dispersión del Gasto por Cliente)**:
+  - Diagrama de caja y bigotes (*Boxplot*) por categoría con marcadores de **Media Aritmética (rombos blancos)** y **Mediana Global (línea punteada roja Q 251.80)**.
+  - Demuestra una distribución uniforme y balanceada del gasto individual entre Q 0.00 y Q 500.00, con un rango intercuartílico simétrico (Q1 ≈ Q 135, Mediana ≈ Q 251.80, Q3 ≈ Q 365) en las 4 categorías, validando la estabilidad estadística del dataset tras la imputación.
 
 ---
 
@@ -189,13 +228,11 @@ El script abre dos ventanas: nulos antes/después + gasto por categoría; y dist
 
 La limpieza **sí cambia la calidad de la información**, no solo el aspecto:
 
-1. **Se puede sumar el gasto.** Antes `gasto_q` era texto con comas y 505 huecos; ahora es número y el total del período es **Q 1,231,515.93**.
-2. **Las categorías ya no se fragmentan.** 12 etiquetas distintas se redujeron a 4, así que un pivote por categoría deja de contar `retail` y `RETAIL` como negocios distintos.
-3. **Ciudad y género se pueden agrupar.** Los vacíos no se silenciaron: quedaron como `Desconocido` (222 ciudades, 113 géneros), lo que hace visible el faltante en lugar de inflar otra ciudad o un género.
-4. **100 filas duplicadas** no debían entrar a ningún indicador; quitarlas evita inflar clientes y gasto.
-5. A nivel de negocio, el gasto está repartido de forma parecida entre categorías y ciudades; no hay un único segmento que domine. Food y Quetzaltenango lideran en total; Escuintla en ticket promedio.
-
-Eso cubre el criterio de la rúbrica: se ve el DataFrame sucio, el depurado, y el impacto en la calidad.
+1. **Se puede sumar y analizar el gasto.** Antes `gasto_q` era texto con comas y 505 huecos; ahora es una variable continua limpia con un total de **Q 1,231,515.93**.
+2. **Las categorías ya no se fragmentan.** 12 variantes sucias se redujeron a 4 categorías canónicas, permitiendo calcular participación de mercado real sin divisiones artificiales.
+3. **Ciudad y género se pueden cruzar y agrupar.** Los valores faltantes se imputaron responsablemente como `Desconocido` (222 en ciudad, 113 en género), garantizando análisis fidedignos sin inflar municipios o géneros arbitrariamente.
+4. **Eliminación de 100 duplicados exactos** que inflaban artificialmente los ingresos en más de Q 25,000 y el volumen de usuarios.
+5. **Comportamiento multivariable equilibrado**: El cruce geográfico-comercial demuestra solidez en todas las regiones, destacando Quetzaltenango y Escuintla como polos de alta rentabilidad y Food como la categoría de mayor tracción.
 
 ---
 
@@ -203,13 +240,22 @@ Eso cubre el criterio de la rúbrica: se ve el DataFrame sucio, el depurado, y e
 
 ```
 Tarea1/
-  limpieza.py                 Script de limpieza y análisis
+  limpieza.py                 Script de limpieza y análisis con generación de gráficos
   requirements.txt            pandas, matplotlib, seaborn
-  README.md                   Este archivo
+  README.md                   Documentación completa y análisis de resultados
   docs/
-    state.md                  Enunciado de la tarea
-    dataset_sucio.csv         Dataset original
+    state.md                  Enunciado de la tarea y rúbrica
+    dataset_sucio.csv         Dataset original (5000 filas)
   data/
-    dataset_limpio.csv        Dataset exportado (depurado)
-  img/                        Capturas (pegar aquí los PNG)
+    dataset_limpio.csv        Dataset exportado (4900 filas depuradas)
+  img/                        Capturas y gráficos generados a 300 DPI
+    01_dataframe_original.png
+    02_duplicados.png
+    03_nulos.png
+    04_estandarizacion.png
+    05_dataframe_limpio.png
+    06_pivote_categoria.png
+    07_grafico_gasto.png
+    08_grafico_genero.png
+    09_grafico_cruce.png
 ```
