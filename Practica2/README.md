@@ -356,8 +356,10 @@ SS22S2026_G1/
     ├── requirements.txt                         ← Dependencias Python
     │
     ├── docs/
-    │   └── statement.md                         ← Enunciado oficial de la práctica
+    │   ├── statement.md                         ← Enunciado oficial de la práctica
+    │   └── GUIA_GENERACION_PBIP.md              ← Guía para generar PBIP en cualquier proyecto
     ├── img/                                     ← Capturas del Dashboard
+    ├── iniciar_servicios.bat                    ← Script 1-clic para levantar Docker y ETL
     ├── powerbi/
     │   └── guia_configuracion.md                ← Manual paso a paso
     │
