@@ -32,5 +32,26 @@ services:
       retries: 10
       start_period: 30s
 
+  etl:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: ss2_etl
+    environment:
+      DB_SERVER: "sqlserver,1433"
+      DB_NAME: "${DB_NAME:-VuelosDW}"
+      DB_USER: "${DB_USER:-sa}"
+      DB_PASSWORD: "${DB_PASSWORD}"
+      DB_DRIVER: "${DB_DRIVER:-ODBC Driver 18 for SQL Server}"
+      RAW_DATA_PATH: "dataset_vuelos_crudo.csv"
+      LOG_LEVEL: "${LOG_LEVEL:-INFO}"
+    depends_on:
+      sqlserver:
+        condition: service_healthy
+    volumes:
+      - ./logs:/app/logs
+      - ./data:/app/data
+
 volumes:
   sqlserver_data:
+

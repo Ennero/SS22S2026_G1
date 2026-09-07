@@ -207,13 +207,11 @@ SS22S2026_G1/
 
 ---
 
-## 7. Instalación y ejecución
+## 7. Instalación y ejecución (Entorno Contenerizado)
 
 ### Requisitos previos
 
-- Docker Desktop (o Docker Engine + docker-compose)
-- Python 3.10 o superior
-- ODBC Driver 18 for SQL Server ([Descarga Microsoft](https://learn.microsoft.com/es-es/sql/connect/odbc/download-odbc-driver-for-sql-server))
+- Docker Engine / Docker Desktop y Docker Compose
 
 ---
 
@@ -232,10 +230,10 @@ cd SS22S2026_G1/Practica1
 cp .env.example .env
 ```
 
-Editar `.env` con los valores reales (la contraseña debe coincidir con la del `docker-compose.yml`):
+Editar `.env` si se requiere modificar credenciales:
 
 ```env
-DB_SERVER=localhost,1433
+DB_SERVER=sqlserver,1433
 DB_NAME=VuelosDW
 DB_USER=sa
 DB_PASSWORD=TuPasswordSegura123!
@@ -248,84 +246,75 @@ LOG_LEVEL=INFO
 
 ---
 
-### Paso 3 — Levantar SQL Server con Docker
+### Paso 3 — Levantar la Base de Datos SQL Server
 
 ```bash
-docker compose up -d
+docker compose up -d sqlserver
 ```
 
-Verificar que el contenedor esté saludable (esperar ~30-60 s):
+Verificar que el contenedor esté en estado saludable (`healthy`):
 
 ```bash
 docker compose ps
-# Debe mostrar: ss2_sqlserver   Up (healthy)
 ```
-
-> **Apple Silicon (M1/M2/M3)**: cambiar la imagen en `docker-compose.yml` a `mcr.microsoft.com/azure-sql-edge:latest`
+> Debe mostrar: ss2_sqlserver   Up (healthy)
 
 ---
 
-### Paso 4 — Crear entorno virtual e instalar dependencias
+### Paso 4 — Ejecutar el Pipeline ETL en Python (Contenerizado)
+
+Para ejecutar el proceso ETL sin instalar Python ni controladores localmente:
 
 ```bash
-python3 -m venv venv
-source venv/bin/activate          # Windows: venv\Scripts\activate
-
-pip install -r requirements.txt
-```
-
----
-
-### Paso 5 — Ejecutar el pipeline ETL
-
-```bash
-python main.py
+docker compose run --rm etl
 ```
 
 El proceso realiza automáticamente:
-1. Lee `dataset_vuelos_crudo.csv`
-2. Limpia y transforma los datos
-3. Crea la base de datos `VuelosDW` y el esquema estrella en SQL Server
-4. Carga todas las tablas
+1. Lee `dataset_vuelos_crudo.csv` dentro del contenedor.
+2. Limpia y transforma los datos.
+3. Crea la base de datos `VuelosDW` y el esquema estrella en SQL Server.
+4. Carga todas las tablas del modelo.
 
-El log completo se guarda en `logs/etl_YYYYMMDD.log`.
+Los registros de auditoría se guardan localmente en `logs/etl_YYYYMMDD.log` a través de volúmenes de Docker.
+
+---
+
+### Paso 5 — Verificar la carga de datos en la Base de Datos
+
+Puedes verificar que las tablas se poblaron correctamente ejecutando la consulta de conteo con `sqlcmd` directamente desde el contenedor de SQL Server:
+
+```bash
+docker exec -it ss2_sqlserver /opt/mssql-tools18/bin/sqlcmd \
+  -S localhost -U sa -P "S2P1G1!2026" -C \
+  -Q "USE VuelosDW; SELECT 'DimFecha' AS Tabla, COUNT(*) AS Total FROM dbo.DimFecha UNION ALL SELECT 'DimPasajero', COUNT(*) FROM dbo.DimPasajero UNION ALL SELECT 'DimAerolinea', COUNT(*) FROM dbo.DimAerolinea UNION ALL SELECT 'DimAeropuerto', COUNT(*) FROM dbo.DimAeropuerto UNION ALL SELECT 'DimClase', COUNT(*) FROM dbo.DimClase UNION ALL SELECT 'DimEstado', COUNT(*) FROM dbo.DimEstado UNION ALL SELECT 'FactVuelos', COUNT(*) FROM dbo.FactVuelos;"
+```
 
 ---
 
 ### Paso 6 — Ejecutar las consultas analíticas
 
-Conectarse a SQL Server con cualquier cliente compatible (Azure Data Studio, DBeaver, SSMS) con:
+Conectarse a SQL Server desde el host o cliente SQL (DBeaver, Azure Data Studio, SSMS):
 
 | Campo | Valor |
 |---|---|
 | Servidor | `localhost,1433` |
 | Usuario | `sa` |
-| Contraseña | La definida en `.env` |
+| Contraseña | La definida en `.env` (`S2P1G1!2026`) |
 | Base de datos | `VuelosDW` |
 
 Luego ejecutar `sql/queries/analytics.sql`.
 
 ---
 
-### Paso 7 — Ejecutar pruebas unitarias (opcional)
+### Reiniciar todo desde cero
 
 ```bash
-pytest tests/ -v
-```
-
----
-
-### Reiniciar desde cero
-
-```bash
-# Detener y eliminar el contenedor y su volumen
+# Detener contenedores y eliminar volúmenes
 docker compose down -v
 
-# Volver a levantar
-docker compose up -d
-
-# Re-ejecutar el ETL
-python main.py
+# Volver a levantar BD y ejecutar ETL
+docker compose up -d sqlserver
+docker compose run --rm etl
 ```
 
 ---
