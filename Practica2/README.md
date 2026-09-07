@@ -345,21 +345,15 @@ Conforme a las directrices de la práctica y la rúbrica de evaluación:
 SS22S2026_G1/
 ├── Practica1/                                   ← Práctica 1 (ETL y DW)
 └── Practica2/                                   ← Práctica 2 (Power BI & Analytics)
-    ├── .dockerignore
-    ├── .env                                     ← Configuración de entorno
+    ├── .env                                     ← Configuración de conexión
     ├── .gitignore                               ← Ignora temporales y cachés
-    ├── Dockerfile                               ← Contenedor del pipeline ETL
     ├── README.md                                ← Informe Técnico y Documentación
-    ├── dataset_vuelos_crudo.csv                 ← Dataset de 50,000 registros
-    ├── docker-compose.yml                       ← Orquestación de SQL Server y ETL
-    ├── main.py                                  ← Ejecutor del pipeline
-    ├── requirements.txt                         ← Dependencias Python
+    ├── docker-compose.yml                       ← Orquestación de SQL Server
     │
     ├── docs/
     │   ├── statement.md                         ← Enunciado oficial de la práctica
     │   └── GUIA_GENERACION_PBIP.md              ← Guía para generar PBIP en cualquier proyecto
     ├── img/                                     ← Capturas del Dashboard
-    ├── iniciar_servicios.bat                    ← Script 1-clic para levantar Docker y ETL
     ├── powerbi/
     │   └── guia_configuracion.md                ← Manual paso a paso
     │
