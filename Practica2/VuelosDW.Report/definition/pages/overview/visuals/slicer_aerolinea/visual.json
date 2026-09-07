@@ -1,0 +1,44 @@
+{
+  "$schema": "https://developer.microsoft.com/json-schemas/fabric/item/report/definition/visualContainer/1.0.0/schema.json",
+  "name": "slicer_aerolinea",
+  "position": {
+    "x": 1000,
+    "y": 20,
+    "width": 260,
+    "height": 200,
+    "z": 7
+  },
+  "visual": {
+    "visualType": "slicer",
+    "query": {
+      "queryState": {
+        "Values": {
+          "projections": [
+            {
+              "field": {
+                "Column": {
+                  "Expression": {
+                    "SourceRef": { "Entity": "DimAerolinea" }
+                  },
+                  "Property": "nombre_aerolinea"
+                }
+              },
+              "queryRef": "DimAerolinea.nombre_aerolinea",
+              "active": true
+            }
+          ]
+        }
+      }
+    },
+    "visualContainerObjects": {
+      "title": [
+        {
+          "properties": {
+            "show": { "expr": { "Literal": { "Value": "true" } } },
+            "text": { "expr": { "Literal": { "Value": "'Filtrar por Aerolínea'" } } }
+          }
+        }
+      ]
+    }
+  }
+}

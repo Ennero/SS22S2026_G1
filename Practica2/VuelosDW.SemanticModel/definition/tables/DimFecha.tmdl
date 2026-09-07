@@ -1,0 +1,97 @@
+/// Dimensión de Fecha — Calendario de fechas de salida de vuelos
+table DimFecha
+	lineageTag: b0000001-0000-0000-0000-000000000001
+
+	column id_fecha
+		dataType: int64
+		isHidden
+		isKey
+		isNullable: false
+		sourceColumn: id_fecha
+		summarizeBy: none
+		lineageTag: b0000001-0001-0000-0000-000000000001
+
+	column fecha
+		dataType: dateTime
+		isNullable: false
+		formatString: dd/MM/yyyy
+		sourceColumn: fecha
+		summarizeBy: none
+		lineageTag: b0000001-0002-0000-0000-000000000001
+
+	column dia
+		dataType: int64
+		sourceColumn: dia
+		summarizeBy: none
+		lineageTag: b0000001-0003-0000-0000-000000000001
+
+	column mes
+		dataType: int64
+		sourceColumn: mes
+		summarizeBy: none
+		lineageTag: b0000001-0004-0000-0000-000000000001
+
+	column anio
+		dataType: int64
+		sourceColumn: anio
+		summarizeBy: none
+		lineageTag: b0000001-0005-0000-0000-000000000001
+
+	column trimestre
+		dataType: int64
+		sourceColumn: trimestre
+		summarizeBy: none
+		lineageTag: b0000001-0006-0000-0000-000000000001
+
+	column dia_semana
+		dataType: int64
+		sourceColumn: dia_semana
+		summarizeBy: none
+		lineageTag: b0000001-0007-0000-0000-000000000001
+
+	column nombre_dia
+		dataType: string
+		sourceColumn: nombre_dia
+		summarizeBy: none
+		lineageTag: b0000001-0008-0000-0000-000000000001
+
+	column nombre_mes
+		dataType: string
+		sourceColumn: nombre_mes
+		summarizeBy: none
+		lineageTag: b0000001-0009-0000-0000-000000000001
+
+	column es_fin_semana
+		dataType: boolean
+		sourceColumn: es_fin_semana
+		summarizeBy: none
+		lineageTag: b0000001-000a-0000-0000-000000000001
+
+	/// Jerarquía temporal: Año → Trimestre → Mes → Día
+	hierarchy 'Jerarquía Fecha'
+		lineageTag: b0000001-h001-0000-0000-000000000001
+
+		level Año
+			column: anio
+			lineageTag: b0000001-h001-0001-0000-000000000001
+
+		level Trimestre
+			column: trimestre
+			lineageTag: b0000001-h001-0002-0000-000000000001
+
+		level Mes
+			column: nombre_mes
+			lineageTag: b0000001-h001-0003-0000-000000000001
+
+		level Día
+			column: dia
+			lineageTag: b0000001-h001-0004-0000-000000000001
+
+	partition DimFecha = m
+		mode: import
+		source =
+			let
+			    Origen = Sql.Database("localhost,1433", "VuelosDW"),
+			    dbo_DimFecha = Origen{[Schema="dbo",Item="DimFecha"]}[Data]
+			in
+			    dbo_DimFecha

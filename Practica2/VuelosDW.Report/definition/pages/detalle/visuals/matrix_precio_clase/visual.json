@@ -1,0 +1,88 @@
+{
+  "$schema": "https://developer.microsoft.com/json-schemas/fabric/item/report/definition/visualContainer/1.0.0/schema.json",
+  "name": "matrix_precio_clase",
+  "position": {
+    "x": 20,
+    "y": 20,
+    "width": 600,
+    "height": 320,
+    "z": 1
+  },
+  "visual": {
+    "visualType": "pivotTable",
+    "query": {
+      "queryState": {
+        "Rows": {
+          "projections": [
+            {
+              "field": {
+                "Column": {
+                  "Expression": {
+                    "SourceRef": { "Entity": "DimAerolinea" }
+                  },
+                  "Property": "nombre_aerolinea"
+                }
+              },
+              "queryRef": "DimAerolinea.nombre_aerolinea",
+              "active": true
+            }
+          ]
+        },
+        "Columns": {
+          "projections": [
+            {
+              "field": {
+                "Column": {
+                  "Expression": {
+                    "SourceRef": { "Entity": "DimClase" }
+                  },
+                  "Property": "clase_cabina"
+                }
+              },
+              "queryRef": "DimClase.clase_cabina",
+              "active": true
+            }
+          ]
+        },
+        "Values": {
+          "projections": [
+            {
+              "field": {
+                "Measure": {
+                  "Expression": {
+                    "SourceRef": { "Entity": "FactVuelos" }
+                  },
+                  "Property": "Precio Promedio USD"
+                }
+              },
+              "queryRef": "FactVuelos.Precio Promedio USD",
+              "active": true
+            },
+            {
+              "field": {
+                "Measure": {
+                  "Expression": {
+                    "SourceRef": { "Entity": "FactVuelos" }
+                  },
+                  "Property": "Total Vuelos"
+                }
+              },
+              "queryRef": "FactVuelos.Total Vuelos",
+              "active": true
+            }
+          ]
+        }
+      }
+    },
+    "visualContainerObjects": {
+      "title": [
+        {
+          "properties": {
+            "show": { "expr": { "Literal": { "Value": "true" } } },
+            "text": { "expr": { "Literal": { "Value": "'Precio Promedio por Aerolínea y Clase de Cabina'" } } }
+          }
+        }
+      ]
+    }
+  }
+}

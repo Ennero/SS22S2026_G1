@@ -1,0 +1,43 @@
+/// ============================================================
+/// Relaciones del Modelo Estrella — VuelosDW
+/// ============================================================
+/// Todas las relaciones son Many-to-One (N:1) desde FactVuelos
+/// hacia las dimensiones. DimAeropuerto actúa como role-playing
+/// dimension (origen y destino).
+/// ============================================================
+
+relationship FK_FactVuelos_Fecha
+	fromColumn: FactVuelos.id_fecha
+	toColumn: DimFecha.id_fecha
+	crossFilteringBehavior: oneDirection
+
+relationship FK_FactVuelos_Pasajero
+	fromColumn: FactVuelos.id_pasajero
+	toColumn: DimPasajero.id_pasajero
+	crossFilteringBehavior: oneDirection
+
+relationship FK_FactVuelos_Aerolinea
+	fromColumn: FactVuelos.id_aerolinea
+	toColumn: DimAerolinea.id_aerolinea
+	crossFilteringBehavior: oneDirection
+
+relationship FK_FactVuelos_Origen
+	fromColumn: FactVuelos.id_origen
+	toColumn: DimAeropuerto.id_aeropuerto
+	crossFilteringBehavior: oneDirection
+
+relationship FK_FactVuelos_Destino
+	fromColumn: FactVuelos.id_destino
+	toColumn: DimAeropuerto.id_aeropuerto
+	crossFilteringBehavior: oneDirection
+	isActive: false
+
+relationship FK_FactVuelos_Clase
+	fromColumn: FactVuelos.id_clase
+	toColumn: DimClase.id_clase
+	crossFilteringBehavior: oneDirection
+
+relationship FK_FactVuelos_Estado
+	fromColumn: FactVuelos.id_estado
+	toColumn: DimEstado.id_estado
+	crossFilteringBehavior: oneDirection

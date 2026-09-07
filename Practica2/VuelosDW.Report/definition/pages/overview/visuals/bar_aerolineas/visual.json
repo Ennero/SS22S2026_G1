@@ -1,0 +1,69 @@
+{
+  "$schema": "https://developer.microsoft.com/json-schemas/fabric/item/report/definition/visualContainer/1.0.0/schema.json",
+  "name": "bar_aerolineas",
+  "position": {
+    "x": 20,
+    "y": 160,
+    "width": 400,
+    "height": 280,
+    "z": 4
+  },
+  "visual": {
+    "visualType": "clusteredBarChart",
+    "query": {
+      "queryState": {
+        "Category": {
+          "projections": [
+            {
+              "field": {
+                "Column": {
+                  "Expression": {
+                    "SourceRef": { "Entity": "DimAerolinea" }
+                  },
+                  "Property": "nombre_aerolinea"
+                }
+              },
+              "queryRef": "DimAerolinea.nombre_aerolinea",
+              "active": true
+            }
+          ]
+        },
+        "Y": {
+          "projections": [
+            {
+              "field": {
+                "Measure": {
+                  "Expression": {
+                    "SourceRef": { "Entity": "FactVuelos" }
+                  },
+                  "Property": "Total Vuelos"
+                }
+              },
+              "queryRef": "FactVuelos.Total Vuelos",
+              "active": true
+            }
+          ]
+        }
+      }
+    },
+    "objects": {
+      "general": [
+        {
+          "properties": {
+            "title": { "expr": { "Literal": { "Value": "'Top Aerolíneas por Volumen de Vuelos'" } } }
+          }
+        }
+      ]
+    },
+    "visualContainerObjects": {
+      "title": [
+        {
+          "properties": {
+            "show": { "expr": { "Literal": { "Value": "true" } } },
+            "text": { "expr": { "Literal": { "Value": "'Top Aerolíneas por Volumen'" } } }
+          }
+        }
+      ]
+    }
+  }
+}

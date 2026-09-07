@@ -1,0 +1,72 @@
+{
+  "$schema": "https://developer.microsoft.com/json-schemas/fabric/item/report/definition/visualContainer/1.0.0/schema.json",
+  "name": "bar_rutas",
+  "position": {
+    "x": 20,
+    "y": 360,
+    "width": 700,
+    "height": 320,
+    "z": 3
+  },
+  "visual": {
+    "visualType": "clusteredBarChart",
+    "query": {
+      "queryState": {
+        "Category": {
+          "projections": [
+            {
+              "field": {
+                "Column": {
+                  "Expression": {
+                    "SourceRef": { "Entity": "DimAeropuerto" }
+                  },
+                  "Property": "codigo_iata"
+                }
+              },
+              "queryRef": "DimAeropuerto.codigo_iata",
+              "active": true
+            }
+          ]
+        },
+        "Y": {
+          "projections": [
+            {
+              "field": {
+                "Measure": {
+                  "Expression": {
+                    "SourceRef": { "Entity": "FactVuelos" }
+                  },
+                  "Property": "Total Vuelos"
+                }
+              },
+              "queryRef": "FactVuelos.Total Vuelos",
+              "active": true
+            },
+            {
+              "field": {
+                "Measure": {
+                  "Expression": {
+                    "SourceRef": { "Entity": "FactVuelos" }
+                  },
+                  "Property": "Precio Promedio USD"
+                }
+              },
+              "queryRef": "FactVuelos.Precio Promedio USD",
+              "active": true
+            }
+          ]
+        }
+      }
+    },
+    "visualContainerObjects": {
+      "title": [
+        {
+          "properties": {
+            "show": { "expr": { "Literal": { "Value": "true" } } },
+            "text": { "expr": { "Literal": { "Value": "'Top Aeropuertos por Volumen y Precio Promedio'" } } }
+          }
+        }
+      ]
+    }
+  }
+}

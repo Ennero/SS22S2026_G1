@@ -1,0 +1,72 @@
+{
+  "$schema": "https://developer.microsoft.com/json-schemas/fabric/item/report/definition/visualContainer/1.0.0/schema.json",
+  "name": "kpi_cancelacion",
+  "position": {
+    "x": 460,
+    "y": 20,
+    "width": 280,
+    "height": 120,
+    "z": 3
+  },
+  "visual": {
+    "visualType": "kpi",
+    "query": {
+      "queryState": {
+        "Value": {
+          "projections": [
+            {
+              "field": {
+                "Measure": {
+                  "Expression": {
+                    "SourceRef": { "Entity": "FactVuelos" }
+                  },
+                  "Property": "Tasa Cancelación %"
+                }
+              },
+              "queryRef": "FactVuelos.Tasa Cancelación %",
+              "active": true
+            }
+          ]
+        },
+        "Goal": {
+          "projections": [
+            {
+              "field": {
+                "Literal": {
+                  "Value": "5D"
+                }
+              },
+              "queryRef": "Goal",
+              "active": true
+            }
+          ]
+        },
+        "TrendAxis": {
+          "projections": [
+            {
+              "field": {
+                "Column": {
+                  "Expression": {
+                    "SourceRef": { "Entity": "DimFecha" }
+                  },
+                  "Property": "nombre_mes"
+                }
+              },
+              "queryRef": "DimFecha.nombre_mes",
+              "active": true
+            }
+          ]
+        }
+      }
+    },
+    "objects": {
+      "status": [
+        {
+          "properties": {
+            "direction": { "expr": { "Literal": { "Value": "'Descending'" } } }
+          }
+        }
+      ]
+    }
+  }
+}

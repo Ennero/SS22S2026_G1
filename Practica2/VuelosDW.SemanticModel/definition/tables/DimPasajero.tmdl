@@ -1,0 +1,52 @@
+/// Dimensión de Pasajero — Perfil demográfico del pasajero
+table DimPasajero
+	lineageTag: b0000002-0000-0000-0000-000000000001
+
+	column id_pasajero
+		dataType: int64
+		isHidden
+		isKey
+		isNullable: false
+		sourceColumn: id_pasajero
+		summarizeBy: none
+		lineageTag: b0000002-0001-0000-0000-000000000001
+
+	column passenger_uuid
+		dataType: string
+		isHidden
+		sourceColumn: passenger_uuid
+		summarizeBy: none
+		lineageTag: b0000002-0002-0000-0000-000000000001
+
+	column genero
+		dataType: string
+		sourceColumn: genero
+		summarizeBy: none
+		lineageTag: b0000002-0003-0000-0000-000000000001
+
+	column edad
+		dataType: int64
+		sourceColumn: edad
+		summarizeBy: none
+		lineageTag: b0000002-0004-0000-0000-000000000001
+
+	column rango_etario
+		dataType: string
+		sourceColumn: rango_etario
+		summarizeBy: none
+		lineageTag: b0000002-0005-0000-0000-000000000001
+
+	column nacionalidad
+		dataType: string
+		sourceColumn: nacionalidad
+		summarizeBy: none
+		lineageTag: b0000002-0006-0000-0000-000000000001
+
+	partition DimPasajero = m
+		mode: import
+		source =
+			let
+			    Origen = Sql.Database("localhost,1433", "VuelosDW"),
+			    dbo_DimPasajero = Origen{[Schema="dbo",Item="DimPasajero"]}[Data]
+			in
+			    dbo_DimPasajero

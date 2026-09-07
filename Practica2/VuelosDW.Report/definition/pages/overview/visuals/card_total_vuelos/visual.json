@@ -1,0 +1,50 @@
+{
+  "$schema": "https://developer.microsoft.com/json-schemas/fabric/item/report/definition/visualContainer/1.0.0/schema.json",
+  "name": "card_total_vuelos",
+  "position": {
+    "x": 20,
+    "y": 20,
+    "width": 200,
+    "height": 120,
+    "z": 1
+  },
+  "visual": {
+    "visualType": "card",
+    "query": {
+      "queryState": {
+        "Values": {
+          "projections": [
+            {
+              "field": {
+                "Measure": {
+                  "Expression": {
+                    "SourceRef": { "Entity": "FactVuelos" }
+                  },
+                  "Property": "Total Vuelos"
+                }
+              },
+              "queryRef": "FactVuelos.Total Vuelos",
+              "active": true
+            }
+          ]
+        }
+      }
+    },
+    "objects": {
+      "labels": [
+        {
+          "properties": {
+            "fontSize": { "expr": { "Literal": { "Value": "28D" } } }
+          }
+        }
+      ],
+      "categoryLabels": [
+        {
+          "properties": {
+            "show": { "expr": { "Literal": { "Value": "true" } } }
+          }
+        }
+      ]
+    }
+  }
+}

@@ -1,0 +1,33 @@
+/// Dimensión de Estado — Estado del vuelo (ON_TIME, CANCELLED, DELAYED, DIVERTED)
+table DimEstado
+	lineageTag: b0000006-0000-0000-0000-000000000001
+
+	column id_estado
+		dataType: int64
+		isHidden
+		isKey
+		isNullable: false
+		sourceColumn: id_estado
+		summarizeBy: none
+		lineageTag: b0000006-0001-0000-0000-000000000001
+
+	column estado_vuelo
+		dataType: string
+		sourceColumn: estado_vuelo
+		summarizeBy: none
+		lineageTag: b0000006-0002-0000-0000-000000000001
+
+	column descripcion_estado
+		dataType: string
+		sourceColumn: descripcion_estado
+		summarizeBy: none
+		lineageTag: b0000006-0003-0000-0000-000000000001
+
+	partition DimEstado = m
+		mode: import
+		source =
+			let
+			    Origen = Sql.Database("localhost,1433", "VuelosDW"),
+			    dbo_DimEstado = Origen{[Schema="dbo",Item="DimEstado"]}[Data]
+			in
+			    dbo_DimEstado
