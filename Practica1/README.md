@@ -105,7 +105,7 @@ flowchart TD
 
 ### Diagrama del modelo estrella
 
-![Modelo dimensional — Esquema Estrella](./img/modelo_dimensional.png)
+![Modelo dimensional — Esquema Estrella](./img/modelo_dimensional.jpg)
 
 ### Descripción del grano
 
