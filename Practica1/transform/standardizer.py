@@ -140,15 +140,32 @@ def build_dim_aerolinea(df: pd.DataFrame) -> pd.DataFrame:
 # DimAeropuerto
 # ---------------------------------------------------------------------------
 
+AIRPORT_METADATA: dict[str, tuple[str, str, str]] = {
+    "BCN": ("Aeropuerto Josep Tarradellas Barcelona-El Prat", "Barcelona", "España"),
+    "BOG": ("Aeropuerto Internacional El Dorado", "Bogotá", "Colombia"),
+    "CUN": ("Aeropuerto Internacional de Cancún", "Cancún", "México"),
+    "GUA": ("Aeropuerto Internacional La Aurora", "Ciudad de Guatemala", "Guatemala"),
+    "HAV": ("Aeropuerto Internacional José Martí", "La Habana", "Cuba"),
+    "JFK": ("Aeropuerto Internacional John F. Kennedy", "Nueva York", "Estados Unidos"),
+    "LAX": ("Aeropuerto Internacional de Los Ángeles", "Los Ángeles", "Estados Unidos"),
+    "LIM": ("Aeropuerto Internacional Jorge Chávez", "Lima", "Perú"),
+    "MAD": ("Aeropuerto Adolfo Suárez Madrid-Barajas", "Madrid", "España"),
+    "MEX": ("Aeropuerto Internacional Benito Juárez", "Ciudad de México", "México"),
+    "MIA": ("Aeropuerto Internacional de Miami", "Miami", "Estados Unidos"),
+    "PTY": ("Aeropuerto Internacional de Tocumen", "Ciudad de Panamá", "Panamá"),
+    "SAL": ("Aeropuerto Internacional San Óscar Arnulfo Romero", "San Salvador", "El Salvador"),
+    "SAP": ("Aeropuerto Internacional Ramón Villeda Morales", "San Pedro Sula", "Honduras"),
+    "SJO": ("Aeropuerto Internacional Juan Santamaría", "San José", "Costa Rica"),
+}
+
+
 def build_dim_aeropuerto(df: pd.DataFrame) -> pd.DataFrame:
     """
-    Construye DimAeropuerto con un registro único por código IATA de aeropuerto.
-
-    Nota: el dataset no incluye ciudad/país de los aeropuertos, por lo que
-    solo se modela el código IATA. Se documenta en README.
+    Construye DimAeropuerto enriquecida con nombre, ciudad y país
+    a partir de los códigos IATA presentes en el dataset.
 
     Columnas resultantes:
-        id_aeropuerto, codigo_iata
+        id_aeropuerto, codigo_iata, nombre_aeropuerto, ciudad, pais
     """
     logger.info("[TRANSFORM/standardizer] Construyendo DimAeropuerto...")
     origins = df[["origin_airport"]].rename(columns={"origin_airport": "codigo_iata"})
@@ -160,6 +177,17 @@ def build_dim_aeropuerto(df: pd.DataFrame) -> pd.DataFrame:
         .sort_values("codigo_iata")
         .reset_index(drop=True)
     )
+
+    dim["nombre_aeropuerto"] = dim["codigo_iata"].map(
+        lambda x: AIRPORT_METADATA.get(x, (f"Aeropuerto {x}", "Desconocido", "Desconocido"))[0]
+    )
+    dim["ciudad"] = dim["codigo_iata"].map(
+        lambda x: AIRPORT_METADATA.get(x, (f"Aeropuerto {x}", "Desconocido", "Desconocido"))[1]
+    )
+    dim["pais"] = dim["codigo_iata"].map(
+        lambda x: AIRPORT_METADATA.get(x, (f"Aeropuerto {x}", "Desconocido", "Desconocido"))[2]
+    )
+
     dim = _assign_surrogate_key(dim, "id_aeropuerto")
     logger.info("[TRANSFORM/standardizer] DimAeropuerto: %d filas", len(dim))
     return dim
@@ -319,7 +347,7 @@ def build_fact_vuelos(
     )
 
     # -- Seleccionar y renombrar columnas finales --
-    fact_final = fact[[
+    selected_cols = [
         "id_fecha",
         "id_pasajero",
         "id_aerolinea",
@@ -334,7 +362,11 @@ def build_fact_vuelos(
         "bags_total",
         "sales_channel",
         "payment_method",
-    ]].rename(columns={
+    ]
+    if "dias_anticipacion" in fact.columns:
+        selected_cols.append("dias_anticipacion")
+
+    fact_final = fact[selected_cols].rename(columns={
         "flight_number": "numero_vuelo",
         "duration_min": "duracion_minutos",
         "ticket_price_usd_est": "precio_usd",
@@ -343,6 +375,9 @@ def build_fact_vuelos(
         "sales_channel": "canal_venta",
         "payment_method": "metodo_pago",
     }).copy()
+
+    if "dias_anticipacion" not in fact_final.columns:
+        fact_final["dias_anticipacion"] = 0
 
     # -- Convertir FK a Int (nullable) --
     fk_cols = ["id_fecha", "id_pasajero", "id_aerolinea", "id_origen", "id_destino", "id_clase", "id_estado"]
@@ -367,6 +402,7 @@ def build_fact_vuelos(
     fact_final["duracion_minutos"] = fact_final["duracion_minutos"].fillna(0).astype(int)
     fact_final["retraso_minutos"] = fact_final["retraso_minutos"].fillna(0).astype(int)
     fact_final["total_equipaje"] = fact_final["total_equipaje"].fillna(0).astype(int)
+    fact_final["dias_anticipacion"] = fact_final["dias_anticipacion"].fillna(0).astype(int)
 
     logger.info(
         "[TRANSFORM/standardizer] FactVuelos: %d filas (%d excluidas por FK nulas)",

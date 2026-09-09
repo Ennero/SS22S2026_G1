@@ -257,13 +257,22 @@ def clean(df: pd.DataFrame) -> Tuple[pd.DataFrame, pd.DataFrame]:
     # Canal de venta desconocido
     df_clean["sales_channel"] = df_clean["sales_channel"].fillna("DESCONOCIDO")
 
-    # --- 9. Añadir rango etario calculado ---
+    # --- 9. Añadir rango etario calculado (incluye edad 0 para infantes) ---
     df_clean["rango_etario"] = pd.cut(
         df_clean["passenger_age"],
-        bins=[0, 17, 25, 35, 50, 65, 120],
+        bins=[-1, 17, 25, 35, 50, 65, 120],
         labels=["<18", "18-25", "26-35", "36-50", "51-65", "65+"],
         right=True,
     ).astype(str)
+
+    # --- 9b. Días de anticipación de reserva ---
+    if "departure_datetime" in df_clean.columns and "booking_datetime" in df_clean.columns:
+        diff_days = (
+            df_clean["departure_datetime"] - df_clean["booking_datetime"]
+        ).dt.total_seconds() / 86400.0
+        df_clean["dias_anticipacion"] = diff_days.fillna(0).clip(lower=0).round().astype(int)
+    else:
+        df_clean["dias_anticipacion"] = 0
 
     # --- 10. Guardar CSV procesado ---
     _save_processed(df_clean)

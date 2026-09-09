@@ -82,19 +82,31 @@ GO
 
 -- ------------------------------------------------------------
 -- DimAeropuerto
--- Nota: el dataset solo contiene código IATA (sin ciudad/país).
--- Se documenta en README la razón del ajuste respecto al modelo propuesto.
+-- Enriquecida con nombre del aeropuerto, ciudad y país para
+-- habilitar jerarquía geográfica (País -> Ciudad -> Aeropuerto)
 -- ------------------------------------------------------------
 IF OBJECT_ID(N'dbo.DimAeropuerto', N'U') IS NULL
 BEGIN
     CREATE TABLE dbo.DimAeropuerto (
-        id_aeropuerto   INT             NOT NULL,
-        codigo_iata     NVARCHAR(5)     NOT NULL,
+        id_aeropuerto       INT             NOT NULL,
+        codigo_iata         NVARCHAR(5)     NOT NULL,
+        nombre_aeropuerto   NVARCHAR(100)   NOT NULL,
+        ciudad              NVARCHAR(50)    NOT NULL,
+        pais                NVARCHAR(50)    NOT NULL,
 
         CONSTRAINT PK_DimAeropuerto PRIMARY KEY CLUSTERED (id_aeropuerto),
         CONSTRAINT UQ_DimAeropuerto_iata UNIQUE (codigo_iata)
     );
     PRINT 'DimAeropuerto creada.';
+END
+ELSE
+BEGIN
+    IF COL_LENGTH('dbo.DimAeropuerto', 'nombre_aeropuerto') IS NULL
+        ALTER TABLE dbo.DimAeropuerto ADD nombre_aeropuerto NVARCHAR(100) NOT NULL DEFAULT 'DESCONOCIDO';
+    IF COL_LENGTH('dbo.DimAeropuerto', 'ciudad') IS NULL
+        ALTER TABLE dbo.DimAeropuerto ADD ciudad NVARCHAR(50) NOT NULL DEFAULT 'DESCONOCIDO';
+    IF COL_LENGTH('dbo.DimAeropuerto', 'pais') IS NULL
+        ALTER TABLE dbo.DimAeropuerto ADD pais NVARCHAR(50) NOT NULL DEFAULT 'DESCONOCIDO';
 END
 GO
 
@@ -164,6 +176,7 @@ BEGIN
         total_equipaje      TINYINT         NULL DEFAULT 0,
         canal_venta         NVARCHAR(30)    NULL,
         metodo_pago         NVARCHAR(30)    NULL,
+        dias_anticipacion   INT             NULL DEFAULT 0,
 
         CONSTRAINT PK_FactVuelos PRIMARY KEY CLUSTERED (id_vuelo),
 
@@ -183,6 +196,11 @@ BEGIN
             FOREIGN KEY (id_estado)     REFERENCES dbo.DimEstado     (id_estado)
     );
     PRINT 'FactVuelos creada.';
+END
+ELSE
+BEGIN
+    IF COL_LENGTH('dbo.FactVuelos', 'dias_anticipacion') IS NULL
+        ALTER TABLE dbo.FactVuelos ADD dias_anticipacion INT NULL DEFAULT 0;
 END
 GO
 
