@@ -56,11 +56,10 @@ El modelo es el punto de partida. Los siguientes ajustes se hicieron al encontra
 
 | Cambio | Justificación |
 |---|---|
-| **`DimAeropuerto` sin ciudad/país** | El CSV solo contiene código IATA de aeropuerto, sin ciudad ni país. Se modela solo con `codigo_iata`. |
+| **`DimAeropuerto` enriquecida** | Los códigos IATA fueron enriquecidos con nombre oficial del aeropuerto, ciudad y país para habilitar jerarquías geográficas y análisis espacial. |
 | **`DimClase` (nueva)** | `cabin_class` y `aircraft_type` están en el CSV y agregan valor analítico. Se crea dimensión separada en lugar de atributo degenerado. |
 | **`DimEstado` (nueva)** | 4 estados de vuelo distintos (ON_TIME / CANCELLED / DELAYED / DIVERTED) ameritan dimensión para filtros eficientes. |
-| **Métrica `retraso_minutos`** | `delay_min` disponible directamente en el dataset. Se agrega como métrica en FactVuelos. |
-| **Métrica `total_equipaje`** | `bags_total` disponible. Se agrega como métrica. |
+| **Métricas operativas** | `retraso_minutos`, `total_equipaje` y `dias_anticipacion` (lead time de reserva) calculadas y almacenadas en FactVuelos. |
 | **Atributos degenerados** | `canal_venta` y `metodo_pago` se conservan en FactVuelos (cardinalidad baja, no amerita dimensión propia). |
 
 ---
@@ -105,7 +104,7 @@ flowchart TD
 
 ### Diagrama del modelo estrella
 
-![Modelo dimensional — Esquema Estrella](./img/modelo_dimensional.jpg)
+![Modelo dimensional — Esquema Estrella](./img/modelo_dimensional.png)
 
 ### Descripción del grano
 
@@ -118,7 +117,7 @@ flowchart TD
 | **DimFecha** | `id_fecha` | fecha, dia, mes, anio, trimestre, dia_semana, es_fin_semana | Calendario de fechas de salida |
 | **DimPasajero** | `id_pasajero` | passenger_uuid, genero, edad, rango_etario, nacionalidad | Perfil del pasajero |
 | **DimAerolinea** | `id_aerolinea` | codigo_iata, nombre_aerolinea | Aerolínea operadora |
-| **DimAeropuerto** | `id_aeropuerto` | codigo_iata | Aeropuertos (rol-playing: origen y destino) |
+| **DimAeropuerto** | `id_aeropuerto` | codigo_iata, nombre_aeropuerto, ciudad, pais | Aeropuertos enriquecidos (rol-playing: origen y destino) |
 | **DimClase** | `id_clase` | clase_cabina, tipo_aeronave | Clase de cabina × tipo de aeronave |
 | **DimEstado** | `id_estado` | estado_vuelo, descripcion_estado | Estado del vuelo (ON_TIME/CANCELLED/DELAYED/DIVERTED) |
 
@@ -141,6 +140,7 @@ flowchart TD
 | `total_equipaje` | TINYINT | Métrica |
 | `canal_venta` | VARCHAR | Atributo degenerado |
 | `metodo_pago` | VARCHAR | Atributo degenerado |
+| `dias_anticipacion` | INT | Métrica (días entre reserva y salida) |
 
 ---
 

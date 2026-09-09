@@ -67,14 +67,18 @@ El ecosistema de la práctica está diseñado para ser **completamente reproduci
 
 El modelo semántico adopta una arquitectura en estrella (*Star Schema*), optimizada para el motor analítico VertiPaq de Power BI:
 
-- **1 Tabla de Hechos:** `FactVuelos` (10,000 registros de transacciones aéreas).
+- **1 Tabla de Hechos:** `FactVuelos` (100,000 registros de transacciones aéreas que abarcan de 2022 a 2026).
 - **6 Tablas de Dimensiones:**
-  - `DimFecha`: Dimensión de tiempo con calendario completo.
+  - `DimFecha`: Dimensión de tiempo con calendario completo (1,704 días entre 2022 y 2026).
   - `DimPasajero`: Dimensión demográfica (género, nacionalidad, rango etario).
   - `DimAerolinea`: Dimensión organizacional de transportistas.
-  - `DimAeropuerto`: Dimensión geográfica (código IATA de origen y destino).
+  - `DimAeropuerto`: Dimensión geográfica enriquecida (código IATA, nombre oficial, ciudad y país).
   - `DimClase`: Dimensión de cabina y tipo de aeronave.
   - `DimEstado`: Dimensión transaccional del estatus del vuelo (`ON_TIME`, `CANCELLED`, `DELAYED`, `DIVERTED`).
+
+### Diagrama del Modelo Dimensional (Esquema Estrella)
+
+![Diagrama del Modelo Dimensional](./img/modelo_dimensional.png)
 
 ```mermaid
 erDiagram
@@ -102,6 +106,7 @@ erDiagram
         int total_equipaje
         string canal_venta
         string metodo_pago
+        int dias_anticipacion
     }
 ```
 
@@ -265,23 +270,29 @@ VuelosDW.pbix
 │
 └── Página 2: Detalle Analítico (Operational Drill-Down)
     ├── Matrix: Precio Promedio por Aerolínea × Clase de Cabina
-    ├── Stacked Bar: Pasajeros por Rango de Edad
-    ├── Bar Chart: Top Aeropuertos de Origen
+    ├── Column Chart: Total Vuelos por Rango Etario
+    ├── Map / Bubble Chart: Cobertura Geográfica de Aeropuertos
     ├── Slicer: Filtro por Estado de Vuelo
     └── Slicer: Filtro por Clase de Cabina
 ```
 
 ### Página 1: "Vista General" (Executive Overview)
-- **Capa Superior de KPIs (Cards):** Visibilidad inmediata de los macroindicadores: Total de Vuelos, Facturación en USD, y el indicador visual de cancelación con meta fija del 5%.
+
+![Dashboard Ejecutivo — Vista General](./img/overview.png)
+
+- **Capa Superior de KPIs (Cards):** Visibilidad inmediata de los macroindicadores: Total de Vuelos, Facturación en USD, y el indicador visual de cancelación con meta fija del 5% mediante un velocímetro semaforizado en rojo.
 - **Análisis de Participación de Mercado:** Gráfico de barras horizontal que clasifica las aerolíneas líderes por volumen operado.
 - **Comportamiento Temporal:** Gráfico de líneas que muestra la evolución mes a mes de los vuelos e ingresos, permitiendo identificar estacionalidad mediante la jerarquía de fecha.
 - **Demografía Rápida:** Gráfico de dona con la distribución de pasajeros por género.
 - **Filtros Interactivos:** Segmentadores dinámicos por Año y por Aerolínea para focalizar el diagnóstico.
 
 ### Página 2: "Detalle Analítico" (Operational Drill-Down)
+
+![Dashboard — Detalle Analítico](./img/detalle.png)
+
 - **Matriz de Rentabilidad (Aerolínea vs Cabina):** Tabla de doble entrada con la tarifa promedio en USD para clases Economy, Premium Economy, Business y First. Permite auditar la estrategia de pricing por aerolínea.
 - **Segmentación Demográfica:** Gráfico de barras por grupos etarios (`<18`, `18-25`, `26-35`, `36-50`, `51-65`, `65+`).
-- **Análisis de Infraestructura:** Clasificación de los aeropuertos con mayor flujo de salida.
+- **Análisis de Cobertura Espacial (Mapa):** Mapa interactivo de burbujas que ubica los aeropuertos en América y Europa basados en la jerarquía geográfica (`DimAeropuerto[ciudad]`).
 - **Filtros Operativos:** Segmentadores dedicados por Estado de Vuelo (`ON_TIME`, `DELAYED`, `CANCELLED`, `DIVERTED`) y Clase de Cabina.
 
 ---
