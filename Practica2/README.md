@@ -9,7 +9,7 @@
 - **Grupo:** 1
 - **Fuente de Datos:** SQL Server 2022 (Data Warehouse `VuelosDW` — Esquema Estrella)
 - **Herramienta de Business Intelligence:** Microsoft Power BI Desktop
-- **Entregable Principal:** Archivo de Power BI (`VuelosDW.pbix`)
+- **Entregable Principal:** Archivo de Power BI (`practica2.pbix`) y presentación ejecutiva (`practica2.pdf`)
 
 ---
 
@@ -57,6 +57,37 @@ El ecosistema de la práctica está diseñado para ser **completamente reproduci
 │   │  - Volumen persistente │   │  - Load (Bulk SQL) │   │
 │   └────────────────────────┘   └────────────────────┘   │
 └─────────────────────────────────────────────────────────┘
+```
+
+### Diagrama de Arquitectura y Flujo de Datos (Mermaid)
+
+```mermaid
+graph TD
+    subgraph Host["Host (Sistema Anfitrión Windows)"]
+        PBI["Microsoft Power BI Desktop (practica2.pbix)"]
+        PBI_Feat["- Modelo Tabular (7 tablas, 1:N)\n- Jerarquías Temporal y Geográfica\n- Medidas DAX y Semáforo KPI\n- Dashboard Ejecutivo (2 Páginas con Navegador)"]
+        PBI -.-> PBI_Feat
+    end
+
+    subgraph Docker["Docker Engine (Red Interna Contenedorizada)"]
+        subgraph ETL["Contenedor ETL (Python 3.10)"]
+            CSV["dataset_vuelos_crudo.csv (100,000 filas)"]
+            PY["Pipeline ETL (Limpieza, Imputación y Estandarización)"]
+            CSV --> PY
+        end
+
+        subgraph DB["Contenedor Base de Datos (ss2_sqlserver)"]
+            SQL["SQL Server 2022 (Puerto 1433)"]
+            DW[("Data Warehouse VuelosDW\n(Esquema Estrella)")]
+            VOL[("Volumen Persistente (mssql_data)")]
+            SQL --- DW
+            DW --- VOL
+        end
+
+        PY -->|"Carga Masiva (Bulk Insert T-SQL)"| SQL
+    end
+
+    PBI ==>|"Conexión TCP localhost:1433 (Modo Importar)"| SQL
 ```
 
 ---
@@ -305,7 +336,7 @@ practica2.pbix
 
 ![Dashboard Ejecutivo — Vista General](./img/overview.png)
 
-- **Capa Superior de KPIs (Cards):** Visibilidad inmediata de los macroindicadores: Total de Vuelos, Facturación en USD, y el indicador visual de cancelación con meta fija del 5% mediante un velocímetro semaforizado en rojo.
+- **Capa Superior de KPIs (Cards y Semáforo):** Visibilidad inmediata de los macroindicadores: Total de Vuelos, Facturación en USD, y el indicador visual de cancelación con meta fija del 5.00% mediante un velocímetro semaforizado dinámicamente (en amarillo preventivo ante el 5.18% actual, alertando a la gerencia sobre la ligera desviación operativa respecto a la meta óptima).
 - **Navegación Interactiva:** Botones integrados (`Page Navigator`) para alternar fluidamente entre vistas ejecutivas y de detalle operativo.
 - **Análisis de Participación de Mercado:** Gráfico de barras horizontal que clasifica las aerolíneas líderes por volumen operado.
 - **Comportamiento Temporal:** Gráfico de líneas que muestra la evolución trimestral de los vuelos e ingresos, permitiendo identificar estacionalidad mediante la jerarquía de fecha.
@@ -395,7 +426,8 @@ SS22S2026_G1/
     │   ├── ddl/create_model.sql                 ← DDL del esquema estrella
     │   └── queries/analytics.sql                ← Consultas SQL analíticas
     │
-    └── VuelosDW.pbix                            ← Archivo oficial de Power BI
+    ├── practica2.pbix                           ← Archivo de Power BI (Modelo, DAX y Dashboard)
+    └── practica2.pdf                            ← Reporte ejecutivo en PDF (2 páginas)
 ```
 
 ---
