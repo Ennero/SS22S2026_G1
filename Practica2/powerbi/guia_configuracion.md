@@ -260,7 +260,28 @@ RETURN
         ) * 100
     )
 
-// 8. Semáforo Cancelación (Indicador condicional)
+// 8. Vuelos Año Anterior (Comparación Interanual)
+Vuelos Año Anterior = 
+VAR AnioActual = SELECTEDVALUE(DimFecha[anio])
+RETURN
+CALCULATE(
+    [Total Vuelos],
+    REMOVEFILTERS(DimFecha[anio]),
+    DimFecha[anio] = AnioActual - 1
+)
+
+// 9. Crecimiento Año a Año (YoY %)
+Crecimiento YoY % = 
+VAR VuelosActual = [Total Vuelos]
+VAR VuelosAnterior = [Vuelos Año Anterior]
+RETURN
+IF(
+    ISBLANK(VuelosAnterior) || VuelosAnterior = 0,
+    BLANK(),
+    DIVIDE(VuelosActual - VuelosAnterior, VuelosAnterior, 0)
+)
+
+// 10. Semáforo Cancelación (Indicador condicional)
 Semáforo Cancelación = 
 VAR Tasa = [Tasa Cancelación %]
 RETURN

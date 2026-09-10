@@ -228,9 +228,31 @@ Todas las métricas analíticas se implementan como medidas calculadas en el mod
    ```
    *Formato:* `+#,##0.0"%";-#,##0.0"%";#,##0.0"%"`. Evalúa la aceleración o desaceleración mensual de la demanda utilizando inteligencia temporal.
 
+10. **Crecimiento Año a Año (YoY % - Comparación Anual):**
+    ```dax
+    Crecimiento YoY % = 
+    VAR VuelosActual = [Total Vuelos]
+    VAR VuelosAnioAnterior = 
+        CALCULATE(
+            [Total Vuelos],
+            SAMEPERIODLASTYEAR(DimFecha[fecha])
+        )
+    RETURN
+        IF(
+            ISBLANK(VuelosAnioAnterior) || VuelosAnioAnterior = 0,
+            BLANK(),
+            DIVIDE(
+                VuelosActual - VuelosAnioAnterior,
+                VuelosAnioAnterior,
+                0
+            ) * 100
+        )
+    ```
+    *Formato:* `+#,##0.0"%";-#,##0.0"%";#,##0.0"%"`. Compara la demanda interanual por aerolínea o período.
+
 ### 4.3 KPI Visual y Semáforo de Desempeño
 
-10. **Semáforo Cancelación:**
+11. **Semáforo Cancelación:**
     ```dax
     Semáforo Cancelación = 
     VAR Tasa = [Tasa Cancelación %]
@@ -252,23 +274,26 @@ Todas las métricas analíticas se implementan como medidas calculadas en el mod
 
 ## 5. Diseño y Estructura del Dashboard
 
-El reporte en Power BI se estructura en **dos páginas especializadas**, diseñadas siguiendo estándares de jerarquía visual y accesibilidad ejecutiva:
+El reporte en Power BI se estructura en **dos páginas especializadas con botones de navegación interactivos**, diseñadas siguiendo estándares de jerarquía visual y accesibilidad ejecutiva:
 
 ### Estructura de Páginas y Visuales
 
 ```
-VuelosDW.pbix
+practica2.pbix
 ├── Página 1: Vista General (Executive Overview)
+│   ├── Page Navigator: Botones [Vista General] [Detalle Analítico]
 │   ├── KPI Card: Total Vuelos
 │   ├── KPI Card: Ingresos Totales USD
-│   ├── KPI Visual / Gauge: Tasa Cancelación % (Meta: 5%)
+│   ├── KPI Visual / Gauge: Tasa Cancelación % (Meta: 5%, Máx: 10%)
 │   ├── Donut Chart: Distribución por Género
 │   ├── Bar Chart: Top Aerolíneas por Volumen
-│   ├── Line Chart: Tendencia Mensual de Vuelos e Ingresos
+│   ├── Line Chart: Tendencia Trimestral de Vuelos e Ingresos
 │   ├── Slicer: Filtro por Aerolínea
-│   └── Slicer: Filtro por Año
+│   └── Slicer: Filtro por Año (2022 - 2026)
 │
 └── Página 2: Detalle Analítico (Operational Drill-Down)
+    ├── Page Navigator: Botones [Vista General] [Detalle Analítico]
+    ├── Table: Comparación Interanual (Año, Total Vuelos, Año Anterior, Crecimiento YoY %)
     ├── Matrix: Precio Promedio por Aerolínea × Clase de Cabina
     ├── Column Chart: Total Vuelos por Rango Etario
     ├── Map / Bubble Chart: Cobertura Geográfica de Aeropuertos
@@ -281,17 +306,20 @@ VuelosDW.pbix
 ![Dashboard Ejecutivo — Vista General](./img/overview.png)
 
 - **Capa Superior de KPIs (Cards):** Visibilidad inmediata de los macroindicadores: Total de Vuelos, Facturación en USD, y el indicador visual de cancelación con meta fija del 5% mediante un velocímetro semaforizado en rojo.
+- **Navegación Interactiva:** Botones integrados (`Page Navigator`) para alternar fluidamente entre vistas ejecutivas y de detalle operativo.
 - **Análisis de Participación de Mercado:** Gráfico de barras horizontal que clasifica las aerolíneas líderes por volumen operado.
-- **Comportamiento Temporal:** Gráfico de líneas que muestra la evolución mes a mes de los vuelos e ingresos, permitiendo identificar estacionalidad mediante la jerarquía de fecha.
+- **Comportamiento Temporal:** Gráfico de líneas que muestra la evolución trimestral de los vuelos e ingresos, permitiendo identificar estacionalidad mediante la jerarquía de fecha.
 - **Demografía Rápida:** Gráfico de dona con la distribución de pasajeros por género.
-- **Filtros Interactivos:** Segmentadores dinámicos por Año y por Aerolínea para focalizar el diagnóstico.
+- **Filtros Interactivos:** Segmentadores dinámicos por Año (2022-2026) y por Aerolínea para focalizar el diagnóstico.
 
 ### Página 2: "Detalle Analítico" (Operational Drill-Down)
 
 ![Dashboard — Detalle Analítico](./img/detalle.png)
 
+- **Comparación Interanual (Time Intelligence):** Tabla analítica superior que compara el volumen de vuelos contra el año previo (`Vuelos Año Anterior`) y calcula la variación porcentual interanual (`Crecimiento YoY %`).
+- **Navegación Interactiva:** Botones integrados (`Page Navigator`) para regresar a la Vista General.
 - **Matriz de Rentabilidad (Aerolínea vs Cabina):** Tabla de doble entrada con la tarifa promedio en USD para clases Economy, Premium Economy, Business y First. Permite auditar la estrategia de pricing por aerolínea.
-- **Segmentación Demográfica:** Gráfico de barras por grupos etarios (`<18`, `18-25`, `26-35`, `36-50`, `51-65`, `65+`).
+- **Segmentación Demográfica:** Gráfico de columnas por grupos etarios (`<18`, `18-25`, `26-35`, `36-50`, `51-65`, `65+`).
 - **Análisis de Cobertura Espacial (Mapa):** Mapa interactivo de burbujas que ubica los aeropuertos en América y Europa basados en la jerarquía geográfica (`DimAeropuerto[ciudad]`).
 - **Filtros Operativos:** Segmentadores dedicados por Estado de Vuelo (`ON_TIME`, `DELAYED`, `CANCELLED`, `DIVERTED`) y Clase de Cabina.
 
