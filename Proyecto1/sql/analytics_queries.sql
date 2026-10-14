@@ -150,3 +150,24 @@ FROM marts.fct_ventas v
 WHERE v.estado_venta <> 'CANCELADA'
 GROUP BY v.canal_venta, v.metodo_pago
 ORDER BY facturacion_total DESC;
+
+
+-- ------------------------------------------------------------------------------
+-- 9. AUDITORÍA HISTÓRICA DE EJECUCIONES DEL PIPELINE AIRFLOW (OPCIONAL / PLUS)
+-- ------------------------------------------------------------------------------
+SELECT
+    id_log,
+    dag_id,
+    run_id,
+    fecha_ejecucion,
+    duracion_segundos,
+    estado,
+    tablas_oltp_procesadas,
+    archivos_csv_procesados,
+    modelos_dbt_ejecutados,
+    pruebas_calidad_aprobadas,
+    mensaje_auditoria
+FROM marts.log_pipeline_auditoria
+ORDER BY id_log DESC
+LIMIT 10;
+

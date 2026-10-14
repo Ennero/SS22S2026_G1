@@ -124,9 +124,9 @@ Para levantar toda la infraestructura y orquestar el flujo de datos completo de 
 ### Ejecución con Script Maestro (Un Solo Comando)
 
 ```bash
-cp .env.example .env
 docker compose up -d --build
 ```
+*Configuración de entorno:* El archivo `.env` ya se encuentra configurado en la raíz de `Proyecto1` con todas las credenciales y la programación del pipeline a las 11:00 AM (`AIRFLOW_SCHEDULE_INTERVAL=0 11 * * *`).
 *Automatización nativa:* El contenedor de Airflow está configurado para que al iniciar despause y dispare automáticamente el DAG `sgfood_elt_pipeline` en segundo plano. Todo el Data Warehouse queda poblado y validado sin necesidad de ejecutar comandos manuales intermedios.
 
 ### Para Limpiar y Borrar Todo en Cualquier Momento:
@@ -177,9 +177,9 @@ Elimina contenedores, redes y los volúmenes persistentes con datos para reinici
 
 ---
 
-## PIPELINE DE APACHE AIRFLOW (DETALLE DE LAS 11 TAREAS)
+## PIPELINE DE APACHE AIRFLOW (DETALLE DE LAS 13 TAREAS Y OBSERVABILIDAD)
 
-El DAG `sgfood_elt_pipeline` en [dags/sgfood_elt_pipeline.py](file:///home/dadev/Escritorio/SS22S2026_G1/Proyecto1/dags/sgfood_elt_pipeline.py) coordina el flujo de datos completo, garantizando orden cronológico, ejecución paralela cuando es viable, tolerancia a fallos e idempotencia.
+El DAG `sgfood_elt_pipeline` en [dags/sgfood_elt_pipeline.py](file:///c:/Users/Enner/Desktop/SS22S2026_G1/Proyecto1/dags/sgfood_elt_pipeline.py) coordina el flujo de datos completo, garantizando orden cronológico, ejecución paralela cuando es viable, tolerancia a fallos, reintentos e idempotencia.
 
 ### Diagrama de Flujo y Dependencias del DAG
 
@@ -191,20 +191,23 @@ El DAG `sgfood_elt_pipeline` en [dags/sgfood_elt_pipeline.py](file:///home/dadev
 |---|---|---|---|---|
 | **1** | `check_database_connection` | `PythonOperator` | `elt.db.test_connection` | Ejecuta un ping de conexión SQL (`SELECT 1`) sobre PostgreSQL `sgfood_dw`. Si la base de datos no está disponible, el DAG aborta de inmediato con reintento automático. |
 | **2** | `verify_seed_oltp` | `PythonOperator` | `dags.sgfood_elt_pipeline.verify_and_seed_oltp_task` | Verifica la existencia del esquema `oltp_sgfood`. Si las tablas están vacías, ejecuta `Data/sgfood_oltp.sql` para poblar el sistema transaccional fuente de forma automática. |
-| **3** | `extract_and_load_oltp_to_raw` | `PythonOperator` | `elt.extract_oltp.extract_and_load_oltp` | Extrae las 7 tablas de `oltp_sgfood` (`sucursales`, `categorias`, `marcas`, `productos`, `clientes`, `ordenes`, `orden_detalle`) y las carga en `raw.*` usando `TRUNCATE` + `INSERT` para garantizar idempotencia. Se ejecuta en paralelo con la tarea 4. |
+| **3** | `extract_and_load_oltp_to_raw` | `PythonOperator` | `elt.extract_oltp.extract_and_load_oltp` | Extrae las 7 tablas de `oltp_sgfood` (`sucursal`, `categoria`, `marca`, `producto`, `cliente`, `venta`, `venta_detalle`) y las carga en `raw.*` usando `TRUNCATE` + `INSERT` para garantizar idempotencia. Se ejecuta en paralelo con la tarea 4. |
 | **4** | `extract_and_load_csv_to_raw` | `PythonOperator` | `elt.extract_csv.extract_and_load_csvs` | Extrae los 5 archivos CSV externos (`inventario_bodega.csv`, `proveedores_precios.csv`, `promociones.csv`, `metas_ventas.csv`, `devoluciones.csv`), parsea tipos numéricos y fechas, y los carga en `raw.*`. Se ejecuta en paralelo con la tarea 3. |
 | **5** | `verify_raw_data_quality` | `PythonOperator` | `elt.quality_checker.check_raw_tables_populated` | Punto de sincronización (barrera): Audita que las 12 tablas en `raw` contengan registros y emite una alerta si alguna tabla quedó en cero. |
-| **6** | `dbt_run_staging` | `BashOperator` | `dbt run --select staging ...` | Construye las 12 vistas en `staging.*`. Limpia espacios en blanco, estandariza mayúsculas, renombra columnas técnicas a lenguaje de negocio y castea tipos. |
-| **7** | `dbt_run_intermediate` | `BashOperator` | `dbt run --select intermediate ...` | Construye las 3 vistas en `intermediate.*`: `int_ventas_enriquecidas` (cálculo de importes netos y márgenes), `int_inventario_estado` (días a vencer y alertas de quiebre) e `int_cumplimiento_metas` (porcentaje de cumplimiento mensual). |
-| **8** | `dbt_run_marts` | `BashOperator` | `dbt run --select marts ...` | Materializa físicamente como tablas en PostgreSQL las 8 dimensiones (`dim_*`) y los 4 hechos (`fct_*`), generando llaves subrogadas mediante `dbt_utils.generate_surrogate_key` y aplicando índices B-Tree. |
-| **9** | `apply_dw_constraints` | `PythonOperator` | `dags.sgfood_elt_pipeline.apply_dw_constraints_task` | Aplica de forma idempotente las restricciones físicas de `PRIMARY KEY`, `UNIQUE` y `FOREIGN KEY` sobre el esquema `marts` (`sql/apply_constraints.sql`), habilitando hipervínculos clicables y diagramas ER interactivos en Adminer y DBeaver. |
-| **10** | `dbt_test_quality_and_integrity` | `BashOperator` | `dbt test ...` | Ejecuta las **92 pruebas de calidad**: unicidad (`unique`), no nulidad (`not_null`), integridad referencial (`relationships`), valores permitidos (`accepted_values`) y validaciones singulares de negocio. |
-| **11** | `pipeline_completion_summary` | `PythonOperator` | `dags.sgfood_elt_pipeline.log_completion_summary` | Consolida y emite en los logs del Airflow el resumen de auditoría final confirmando la culminación exitosa de todas las etapas. |
+| **6** | `audit_business_quality_rules` | `PythonOperator` | `dags.sgfood_elt_pipeline.audit_business_rules_task` | **(Opcional / Plus)** Audita reglas de negocio sobre datos crudos (precios no negativos, descuentos válidos <= 100%, stocks no negativos) antes de disparar transformaciones. |
+| **7** | `dbt_run_staging` | `BashOperator` | `dbt run --select staging ...` | Construye las 12 vistas en `staging.*`. Limpia espacios en blanco, estandariza mayúsculas, renombra columnas técnicas a lenguaje de negocio y castea tipos. |
+| **8** | `dbt_run_intermediate` | `BashOperator` | `dbt run --select intermediate ...` | Construye las 3 vistas en `intermediate.*`: `int_ventas_enriquecidas` (cálculo de importes netos y márgenes), `int_inventario_estado` (días a vencer y alertas de quiebre) e `int_cumplimiento_metas` (porcentaje de cumplimiento mensual). |
+| **9** | `dbt_run_marts` | `BashOperator` | `dbt run --select marts ...` | Materializa físicamente como tablas en PostgreSQL las 8 dimensiones (`dim_*`) y los 4 hechos (`fct_*`), generando llaves subrogadas mediante `MD5` y aplicando índices B-Tree. |
+| **10** | `apply_dw_constraints` | `PythonOperator` | `dags.sgfood_elt_pipeline.apply_dw_constraints_task` | Aplica de forma idempotente las restricciones físicas de `PRIMARY KEY`, `UNIQUE` y `FOREIGN KEY` sobre el esquema `marts` (`sql/apply_constraints.sql`), y asegura la creación de la tabla `marts.log_pipeline_auditoria`. |
+| **11** | `dbt_test_quality_and_integrity` | `BashOperator` | `dbt test ...` | Ejecuta las **92 pruebas de calidad**: unicidad (`unique`), no nulidad (`not_null`), integridad referencial (`relationships`), valores permitidos (`accepted_values`) y validaciones singulares de negocio. |
+| **12** | `record_pipeline_execution_log` | `PythonOperator` | `dags.sgfood_elt_pipeline.record_pipeline_execution_log_task` | **(Opcional / Plus)** Inserta el registro oficial de auditoría en la tabla física `marts.log_pipeline_auditoria` con métricas de duración, registros y estado `SUCCESS`. |
+| **13** | `pipeline_completion_summary` | `PythonOperator` | `dags.sgfood_elt_pipeline.log_completion_summary` | Consolida y emite en los logs del Airflow el resumen de auditoría final confirmando la culminación exitosa de todas las etapas. |
 
-### Políticas de Ejecución y Resiliencia
-- **Idempotencia:** Todas las tareas de carga pueden ejecutarse múltiples veces al día sin duplicar datos ni corromper registros históricos.
+### Políticas de Ejecución, Resiliencia y Observabilidad (Opcional / Plus)
+- **Programación Automática (Schedule):** Configurado a diario a las 11:00 AM (`0 11 * * *`), parametrizable vía variable de entorno `AIRFLOW_SCHEDULE_INTERVAL`.
+- **Manejo de Errores con Callbacks:** `on_failure_callback` intercepta cualquier excepción en cualquier tarea y genera un registro `FAILED` con mensaje de error en `marts.log_pipeline_auditoria`.
+- **Idempotencia:** Todas las tareas de carga pueden ejecutarse múltiples veces sin duplicar datos ni corromper registros históricos.
 - **Reintentos:** Cada tarea cuenta con 1 reintento automático (`retries: 1`) con espera de 1 minuto (`retry_delay: 60s`).
-- **Disparo:** Configurado para disparo manual bajo demanda o automatizado diario según se defina en el cron.
 
 ---
 
@@ -541,18 +544,16 @@ ORDER BY facturacion_total DESC;
 
 ---
 
-## CONEXIÓN CON POWER BI
+## CONEXIÓN Y BUSINESS INTELLIGENCE CON POWER BI (REQUERIMIENTO OPCIONAL / PLUS)
 
-Para visualizar los datos en Power BI Desktop:
-1. Abrir **Power BI Desktop** -> **Obtener datos** -> **Base de datos PostgreSQL**.
-2. **Servidor:** `localhost:5432`
-3. **Base de datos:** `sgfood_dw`
-4. **Modo:** `Importar`
-5. **Credenciales:** Usuario `postgres`, Contraseña `postgres`.
-6. Seleccionar las tablas del esquema **`marts`**:
-   - `dim_sucursal`, `dim_categoria`, `dim_marca`, `dim_producto`, `dim_cliente`, `dim_proveedor`, `dim_promocion`, `dim_fecha`
-   - `fct_ventas`, `fct_inventario`, `fct_devoluciones`, `fct_rendimiento_metas`
-7. Las relaciones se conectan automáticamente en la vista de modelo bajo el esquema estrella documentado.
+El Data Warehouse analítico de SG-Food está 100% preparado para ser explotado visualmente desde **Microsoft Power BI Desktop**. Se cuenta con una guía dedicada exhaustiva en [powerbi/guia_configuracion_powerbi.md](file:///c:/Users/Enner/Desktop/SS22S2026_G1/Proyecto1/powerbi/guia_configuracion_powerbi.md) que contiene:
+- **Parámetros de conexión:** Host `localhost:5432`, BD `sgfood_dw`, usuario `postgres`, esquema `marts`.
+- **Modelo Relacional en Estrella:** Cardinalidad 1 a Varios (1:N) con dirección de filtro único entre las 8 dimensiones y 4 hechos.
+- **21 Medidas DAX Formuladas:** Ventas Netas, Margen Bruto Q, % Margen, Ticket Promedio, Stock Crítico, Lotes Próximos a Vencer, % Cumplimiento de Metas con semáforos, Tasa de Devoluciones.
+- **Estructura de 3 Dashboards Interactivos:** Panel Ejecutivo Financiero, Control de Logística/Vencimientos y Rendimiento Comercial/Calidad.
+- **Respuestas a preguntas clave de evaluación** para sustentar la arquitectura ante el docente.
+
+Para la guía paso a paso, consulta: [powerbi/guia_configuracion_powerbi.md](file:///c:/Users/Enner/Desktop/SS22S2026_G1/Proyecto1/powerbi/guia_configuracion_powerbi.md).
 
 ---
 

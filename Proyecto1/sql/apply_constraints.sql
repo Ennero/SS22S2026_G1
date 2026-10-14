@@ -150,4 +150,20 @@ BEGIN
             ADD CONSTRAINT fk_fct_rendimiento_metas_sucursal FOREIGN KEY (id_sucursal) REFERENCES marts.dim_sucursal(id_sucursal);
     END IF;
 
+    -- 5. TABLA DE AUDITORÍA Y OBSERVABILIDAD DEL PIPELINE (REQUERIMIENTO OPCIONAL / PLUS)
+    CREATE TABLE IF NOT EXISTS marts.log_pipeline_auditoria (
+        id_log SERIAL PRIMARY KEY,
+        dag_id VARCHAR(100) NOT NULL,
+        run_id VARCHAR(250) NOT NULL,
+        fecha_ejecucion TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+        duracion_segundos NUMERIC(8,2),
+        estado VARCHAR(30) NOT NULL,
+        tablas_oltp_procesadas INT,
+        archivos_csv_procesados INT,
+        modelos_dbt_ejecutados INT,
+        pruebas_calidad_aprobadas INT,
+        mensaje_auditoria TEXT
+    );
+
 END $$;
+

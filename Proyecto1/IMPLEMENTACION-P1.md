@@ -392,7 +392,7 @@ Done. PASS=92 WARN=0 ERROR=0 SKIP=0 TOTAL=92
 ### 8.1 Definición del DAG: `sgfood_elt_pipeline`
 El pipeline está definido en [dags/sgfood_elt_pipeline.py](file:///home/dadev/Escritorio/SS22S2026_G1/Proyecto1/dags/sgfood_elt_pipeline.py).
 - **ID:** `sgfood_elt_pipeline`
-- **Schedule:** Programado diariamente a las 06:00 AM UTC (`schedule_interval="0 6 * * *"`) para cumplir con los requerimientos opcionales de automatización.
+- **Schedule:** Programado diariamente a las 11:00 AM (`schedule_interval="0 11 * * *"`, parametrizable vía `AIRFLOW_SCHEDULE_INTERVAL`) para cumplir con los requerimientos opcionales de automatización.
 - **Catchup:** `False`
 - **Reintentos:** 1 reintento con retraso de 1 minuto en caso de caída transitoria de red.
 
@@ -654,10 +654,8 @@ git clone https://github.com/Ennero/SS22S2026_G1.git
 cd SS22S2026_G1/Proyecto1
 ```
 
-### 11.3 Paso 2: Configurar Variables de Entorno
-```bash
-cp .env.example .env
-```
+### 11.3 Paso 2: Verificar Variables de Entorno
+El archivo `.env` ya se encuentra listo y configurado en la raíz de `Proyecto1` con las credenciales de PostgreSQL y la programación a las 11:00 AM (`AIRFLOW_SCHEDULE_INTERVAL=0 11 * * *`). (Si se clona en otro equipo sin `.env`, se puede duplicar con `cp .env.example .env`).
 
 ### 11.4 Paso 3: Levantar los Contenedores
 ```bash

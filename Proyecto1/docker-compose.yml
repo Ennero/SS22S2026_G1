@@ -3,6 +3,8 @@ services:
     image: postgres:16-alpine
     container_name: sgfood_postgres
     restart: always
+    env_file:
+      - .env
     environment:
       POSTGRES_USER: ${POSTGRES_USER:-postgres}
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-postgres}
@@ -11,7 +13,7 @@ services:
       - "5432:5432"
     volumes:
       - postgres_data:/var/lib/postgresql/data
-      - ./sql/01_init_databases.sh:/docker-entrypoint-initdb.d/01_init_databases.sh:ro
+      - ./sql/01_init_databases.sql:/docker-entrypoint-initdb.d/01_init_databases.sql:ro
       - ./Data/sgfood_oltp.sql:/docker-entrypoint-initdb.d/sgfood_oltp.sql:ro
       - ./sql:/sql:ro
     healthcheck:
@@ -35,6 +37,8 @@ services:
       AIRFLOW__DATABASE__SQL_ALCHEMY_CONN: postgresql+psycopg2://${POSTGRES_USER:-postgres}:${POSTGRES_PASSWORD:-postgres}@postgres:5432/airflow
     command: >
       bash -c "
+        echo '[INIT] Verificando base de datos de Airflow...' &&
+        python3 /opt/airflow/elt/init_airflow_db.py &&
         echo '[INIT] Migrando base de datos de Airflow...' &&
         airflow db migrate &&
         airflow users create \
@@ -43,7 +47,15 @@ services:
           --firstname Admin \
           --lastname User \
           --role Admin \
-          --email admin@sgfood.com || true
+          --email admin@sgfood.com || true &&
+        airflow connections add 'postgres_sgfood' \
+          --conn-type 'postgres' \
+          --conn-host 'postgres' \
+          --conn-schema 'sgfood_dw' \
+          --conn-login 'postgres' \
+          --conn-password 'postgres' \
+          --conn-port 5432 || true &&
+        airflow variables set 'sgfood_environment' 'production' || true
       "
     volumes:
       - ./dags:/opt/airflow/dags
@@ -70,6 +82,7 @@ services:
       AIRFLOW__CORE__DAGS_FOLDER: /opt/airflow/dags
       AIRFLOW__CORE__LOAD_EXAMPLES: "False"
       AIRFLOW__WEBSERVER__SECRET_KEY: ${AIRFLOW__WEBSERVER__SECRET_KEY:-sgfood_secret_key_airflow_2026}
+      AIRFLOW_SCHEDULE_INTERVAL: ${AIRFLOW_SCHEDULE_INTERVAL:-0 11 * * *}
       PYTHONPATH: /opt/airflow
       DBT_PROFILES_DIR: /opt/airflow/dbt_sgfood
       DBT_PROJECT_DIR: /opt/airflow/dbt_sgfood
