@@ -1,0 +1,149 @@
+version: 2
+
+models:
+  - name: dim_fecha
+    description: "Dimensión de calendario y fechas."
+    columns:
+      - name: fecha_id
+        tests:
+          - unique
+          - not_null
+
+  - name: dim_sucursal
+    description: "Dimensión de sucursales."
+    columns:
+      - name: dim_sucursal_sk
+        tests:
+          - unique
+          - not_null
+      - name: id_sucursal
+        tests:
+          - unique
+          - not_null
+
+  - name: dim_categoria
+    description: "Dimensión de categorías."
+    columns:
+      - name: dim_categoria_sk
+        tests:
+          - unique
+          - not_null
+
+  - name: dim_marca
+    description: "Dimensión de marcas."
+    columns:
+      - name: dim_marca_sk
+        tests:
+          - unique
+          - not_null
+
+  - name: dim_producto
+    description: "Dimensión de productos."
+    columns:
+      - name: dim_producto_sk
+        tests:
+          - unique
+          - not_null
+      - name: id_producto
+        tests:
+          - unique
+          - not_null
+
+  - name: dim_cliente
+    description: "Dimensión de clientes."
+    columns:
+      - name: dim_cliente_sk
+        tests:
+          - unique
+          - not_null
+      - name: id_cliente
+        tests:
+          - unique
+          - not_null
+
+  - name: dim_proveedor
+    description: "Dimensión de proveedores y costos."
+    columns:
+      - name: dim_proveedor_sk
+        tests:
+          - unique
+          - not_null
+
+  - name: dim_promocion
+    description: "Dimensión de promociones."
+    columns:
+      - name: dim_promocion_sk
+        tests:
+          - unique
+          - not_null
+
+  - name: fct_ventas
+    description: "Tabla de hechos de transacciones de venta a nivel detalle."
+    columns:
+      - name: fct_venta_sk
+        tests:
+          - unique
+          - not_null
+      - name: dim_sucursal_sk
+        tests:
+          - not_null
+          - relationships:
+              to: ref('dim_sucursal')
+              field: dim_sucursal_sk
+      - name: dim_producto_sk
+        tests:
+          - not_null
+          - relationships:
+              to: ref('dim_producto')
+              field: dim_producto_sk
+      - name: dim_cliente_sk
+        tests:
+          - not_null
+          - relationships:
+              to: ref('dim_cliente')
+              field: dim_cliente_sk
+      - name: importe_neto
+        tests:
+          - not_null
+
+  - name: fct_inventario
+    description: "Tabla de hechos de inventario y stocks mensuales."
+    columns:
+      - name: fct_inventario_sk
+        tests:
+          - unique
+          - not_null
+      - name: dim_sucursal_sk
+        tests:
+          - not_null
+          - relationships:
+              to: ref('dim_sucursal')
+              field: dim_sucursal_sk
+      - name: dim_producto_sk
+        tests:
+          - not_null
+          - relationships:
+              to: ref('dim_producto')
+              field: dim_producto_sk
+
+  - name: fct_devoluciones
+    description: "Tabla de hechos de devoluciones de productos."
+    columns:
+      - name: fct_devolucion_sk
+        tests:
+          - unique
+          - not_null
+
+  - name: fct_rendimiento_metas
+    description: "Tabla de hechos de metas vs cumplimiento mensual."
+    columns:
+      - name: fct_meta_sk
+        tests:
+          - unique
+          - not_null
+      - name: dim_sucursal_sk
+        tests:
+          - not_null
+          - relationships:
+              to: ref('dim_sucursal')
+              field: dim_sucursal_sk

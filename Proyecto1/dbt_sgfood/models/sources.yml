@@ -1,0 +1,100 @@
+version: 2
+
+sources:
+  - name: raw
+    database: "{{ env_var('POSTGRES_DB', 'sgfood_dw') }}"
+    schema: raw
+    description: "Capa de aterrizaje Raw que contiene los datos crudos extraídos de la fuente transaccional OLTP y archivos CSV externos."
+    tables:
+      - name: sucursal
+        description: "Sucursales de SG-Food extraídas del sistema OLTP."
+        columns:
+          - name: id_sucursal
+            tests:
+              - unique
+              - not_null
+
+      - name: categoria
+        description: "Categorías de productos."
+        columns:
+          - name: id_categoria
+            tests:
+              - unique
+              - not_null
+
+      - name: marca
+        description: "Marcas comerciales de productos."
+        columns:
+          - name: id_marca
+            tests:
+              - unique
+              - not_null
+
+      - name: producto
+        description: "Catálogo de productos con SKU, costos y precios."
+        columns:
+          - name: id_producto
+            tests:
+              - unique
+              - not_null
+
+      - name: cliente
+        description: "Clientes registrados con segmento y ubicación geográfica."
+        columns:
+          - name: id_cliente
+            tests:
+              - unique
+              - not_null
+
+      - name: venta
+        description: "Encabezado de transacciones de venta con fecha, cliente, sucursal, canal y método de pago."
+        columns:
+          - name: id_venta
+            tests:
+              - unique
+              - not_null
+
+      - name: venta_detalle
+        description: "Líneas de detalle de venta con producto, cantidad, precio, descuento y subtotal."
+        columns:
+          - name: id_detalle
+            tests:
+              - unique
+              - not_null
+
+      - name: inventario_bodega
+        description: "Snapshots mensuales de existencias, lotes y vencimientos."
+        columns:
+          - name: id_producto
+            tests:
+              - not_null
+
+      - name: proveedores_precios
+        description: "Costos ofrecidos por proveedores externos y tiempos de entrega."
+        columns:
+          - name: id_proveedor
+            tests:
+              - not_null
+
+      - name: promociones
+        description: "Campañas comerciales de descuento por categoría y período."
+        columns:
+          - name: id_promocion
+            tests:
+              - unique
+              - not_null
+
+      - name: metas_ventas
+        description: "Metas mensuales comerciales en importe y unidades por sucursal."
+        columns:
+          - name: id_sucursal
+            tests:
+              - not_null
+
+      - name: devoluciones
+        description: "Registro de devoluciones de productos por venta y motivo."
+        columns:
+          - name: id_devolucion
+            tests:
+              - unique
+              - not_null

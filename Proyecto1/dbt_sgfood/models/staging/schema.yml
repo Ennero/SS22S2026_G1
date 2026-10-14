@@ -1,0 +1,104 @@
+version: 2
+
+models:
+  - name: stg_sucursales
+    description: "Sucursales limpias y estandarizadas."
+    columns:
+      - name: id_sucursal
+        tests:
+          - unique
+          - not_null
+
+  - name: stg_categorias
+    description: "Categorías limpias y estandarizadas."
+    columns:
+      - name: id_categoria
+        tests:
+          - unique
+          - not_null
+
+  - name: stg_marcas
+    description: "Marcas comerciales limpias."
+    columns:
+      - name: id_marca
+        tests:
+          - unique
+          - not_null
+
+  - name: stg_productos
+    description: "Catálogo de productos estandarizado."
+    columns:
+      - name: id_producto
+        tests:
+          - unique
+          - not_null
+      - name: precio_lista
+        tests:
+          - not_null
+
+  - name: stg_clientes
+    description: "Clientes con datos de ubicación limpios."
+    columns:
+      - name: id_cliente
+        tests:
+          - unique
+          - not_null
+
+  - name: stg_ventas
+    description: "Encabezados de venta limpios."
+    columns:
+      - name: id_venta
+        tests:
+          - unique
+          - not_null
+      - name: fecha_venta
+        tests:
+          - not_null
+
+  - name: stg_ventas_detalle
+    description: "Líneas de detalle de ventas estandarizadas."
+    columns:
+      - name: id_detalle
+        tests:
+          - unique
+          - not_null
+      - name: cantidad
+        tests:
+          - not_null
+
+  - name: stg_inventario
+    description: "Snapshots de inventario mensuales estandarizados."
+    columns:
+      - name: stock_disponible
+        tests:
+          - not_null
+
+  - name: stg_proveedores_precios
+    description: "Precios y plazos de proveedores estandarizados."
+    columns:
+      - name: id_proveedor
+        tests:
+          - not_null
+
+  - name: stg_promociones
+    description: "Promociones comerciales estandarizadas."
+    columns:
+      - name: id_promocion
+        tests:
+          - unique
+          - not_null
+
+  - name: stg_metas_ventas
+    description: "Metas de ventas mensuales estandarizadas."
+    columns:
+      - name: periodo_mes
+        tests:
+          - not_null
+
+  - name: stg_devoluciones
+    description: "Devoluciones de productos estandarizadas."
+    columns:
+      - name: id_devolucion
+        tests:
+          - unique
+          - not_null

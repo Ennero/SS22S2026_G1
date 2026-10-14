@@ -1,0 +1,20 @@
+# Environment files
+.env
+
+# dbt runtime artifacts
+dbt_sgfood/target/
+dbt_sgfood/dbt_packages/
+dbt_sgfood/logs/
+dbt_sgfood/.user.yml
+
+# Airflow runtime logs
+logs/
+airflow.db
+airflow.cfg
+webserver_config.py
+
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+.pytest_cache/
