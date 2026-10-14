@@ -16,118 +16,126 @@ CREATE SCHEMA IF NOT EXISTS marts;
 -- =============================================================================
 
 -- Fuente Transaccional OLTP (SG-Food)
-CREATE TABLE IF NOT EXISTS raw.raw_sucursales (
+CREATE TABLE IF NOT EXISTS raw.sucursal (
     id_sucursal INT,
     nombre VARCHAR(100),
+    ciudad VARCHAR(100),
     departamento VARCHAR(100),
-    municipio VARCHAR(100),
-    direccion VARCHAR(255),
-    capacidad_m2 NUMERIC(10,2),
-    fecha_apertura DATE,
-    es_propia BOOLEAN
+    _ingested_at TIMESTAMP
 );
 
-CREATE TABLE IF NOT EXISTS raw.raw_categorias (
+CREATE TABLE IF NOT EXISTS raw.categoria (
     id_categoria INT,
     nombre VARCHAR(100),
-    descripcion TEXT
+    _ingested_at TIMESTAMP
 );
 
-CREATE TABLE IF NOT EXISTS raw.raw_marcas (
+CREATE TABLE IF NOT EXISTS raw.marca (
     id_marca INT,
     nombre VARCHAR(100),
-    pais_origen VARCHAR(100)
+    _ingested_at TIMESTAMP
 );
 
-CREATE TABLE IF NOT EXISTS raw.raw_productos (
+CREATE TABLE IF NOT EXISTS raw.producto (
     id_producto INT,
-    sku VARCHAR(50),
+    sku VARCHAR(20),
     nombre VARCHAR(150),
     id_categoria INT,
     id_marca INT,
-    perecedero BOOLEAN,
-    precio_base NUMERIC(12,2),
-    dias_caducidad INT
+    unidad_medida VARCHAR(30),
+    costo_base NUMERIC(12,2),
+    precio_lista NUMERIC(12,2),
+    activo BOOLEAN,
+    _ingested_at TIMESTAMP
 );
 
-CREATE TABLE IF NOT EXISTS raw.raw_clientes (
+CREATE TABLE IF NOT EXISTS raw.cliente (
     id_cliente INT,
-    nit VARCHAR(50),
+    nit VARCHAR(20),
     nombre VARCHAR(150),
-    segmento VARCHAR(50),
-    tipo_cliente VARCHAR(50),
+    tipo_cliente VARCHAR(40),
     municipio VARCHAR(100),
     departamento VARCHAR(100),
-    fecha_registro DATE
+    fecha_alta DATE,
+    _ingested_at TIMESTAMP
 );
 
-CREATE TABLE IF NOT EXISTS raw.raw_ordenes (
-    id_orden BIGINT,
-    numero_orden VARCHAR(50),
-    id_sucursal INT,
+CREATE TABLE IF NOT EXISTS raw.venta (
+    id_venta BIGINT,
+    fecha DATE,
     id_cliente INT,
-    canal_venta VARCHAR(50),
-    metodo_pago VARCHAR(50),
-    fecha_orden DATE,
-    hora_orden TIME,
-    total NUMERIC(14,2)
+    id_sucursal INT,
+    canal VARCHAR(30),
+    metodo_pago VARCHAR(30),
+    estado VARCHAR(20),
+    _ingested_at TIMESTAMP
 );
 
-CREATE TABLE IF NOT EXISTS raw.raw_orden_detalle (
+CREATE TABLE IF NOT EXISTS raw.venta_detalle (
     id_detalle BIGINT,
-    id_orden BIGINT,
+    id_venta BIGINT,
     id_producto INT,
-    cantidad NUMERIC(12,2),
+    cantidad INT,
     precio_unitario NUMERIC(12,2),
-    descuento_unitario NUMERIC(12,2),
-    subtotal NUMERIC(14,2)
+    descuento NUMERIC(5,4),
+    subtotal NUMERIC(14,2),
+    _ingested_at TIMESTAMP
 );
 
 -- Archivos Planos CSV Complementarios
-CREATE TABLE IF NOT EXISTS raw.raw_inventario_bodega (
+CREATE TABLE IF NOT EXISTS raw.inventario_bodega (
     fecha_corte DATE,
     id_sucursal INT,
-    sku VARCHAR(50),
+    id_producto INT,
     stock_disponible INT,
     stock_minimo INT,
     stock_maximo INT,
     lote VARCHAR(50),
-    fecha_vencimiento DATE
+    fecha_vencimiento DATE,
+    _ingested_at TIMESTAMP,
+    _source_file VARCHAR(100)
 );
 
-CREATE TABLE IF NOT EXISTS raw.raw_proveedores_precios (
+CREATE TABLE IF NOT EXISTS raw.proveedores_precios (
     id_proveedor INT,
-    proveedor_nombre VARCHAR(150),
-    sku VARCHAR(50),
-    costo_unitario NUMERIC(12,2),
-    tiempo_entrega_dias INT,
-    calificacion_proveedor NUMERIC(3,1)
-);
-
-CREATE TABLE IF NOT EXISTS raw.raw_promociones (
-    id_promocion INT,
-    nombre_promo VARCHAR(100),
-    tipo_promo VARCHAR(50),
-    sku VARCHAR(50),
-    descuento_porcentaje NUMERIC(5,2),
-    fecha_inicio DATE,
-    fecha_fin DATE
-);
-
-CREATE TABLE IF NOT EXISTS raw.raw_metas_ventas (
-    mes VARCHAR(20),
-    id_sucursal INT,
-    meta_monto NUMERIC(14,2),
-    meta_unidades INT
-);
-
-CREATE TABLE IF NOT EXISTS raw.raw_devoluciones (
-    id_devolucion BIGINT,
-    id_orden BIGINT,
+    proveedor VARCHAR(150),
     id_producto INT,
-    fecha_devolucion DATE,
+    costo_proveedor NUMERIC(12,2),
+    plazo_dias INT,
+    fecha_vigencia DATE,
+    _ingested_at TIMESTAMP,
+    _source_file VARCHAR(100)
+);
+
+CREATE TABLE IF NOT EXISTS raw.promociones (
+    id_promocion INT,
+    nombre VARCHAR(150),
+    fecha_inicio DATE,
+    fecha_fin DATE,
+    id_categoria INT,
+    porcentaje_descuento NUMERIC(5,4),
+    _ingested_at TIMESTAMP,
+    _source_file VARCHAR(100)
+);
+
+CREATE TABLE IF NOT EXISTS raw.metas_ventas (
+    periodo VARCHAR(10),
+    id_sucursal INT,
+    meta_ventas NUMERIC(14,2),
+    meta_unidades INT,
+    _ingested_at TIMESTAMP,
+    _source_file VARCHAR(100)
+);
+
+CREATE TABLE IF NOT EXISTS raw.devoluciones (
+    id_devolucion INT,
+    fecha DATE,
+    id_venta BIGINT,
+    id_producto INT,
     cantidad INT,
-    motivo VARCHAR(150)
+    motivo VARCHAR(150),
+    _ingested_at TIMESTAMP,
+    _source_file VARCHAR(100)
 );
 
 -- =============================================================================

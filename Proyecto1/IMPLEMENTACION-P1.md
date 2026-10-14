@@ -5,6 +5,12 @@
 **Ponderación:** 25 Puntos (Evaluado sobre 100%)  
 **Entorno:** 100% Contenerizado con Docker y Docker Compose  
 
+### Integrantes del Grupo 1
+| Nombre Completo | Carné |
+|---|---|
+| **Diego Alessandro Constanza Padilla** | **202300601** |
+| **Enner Esaí Mendizabal Castro** | **202302220** |
+
 ---
 
 ## ÍNDICE GENERAL

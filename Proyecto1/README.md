@@ -4,6 +4,15 @@
 
 ---
 
+## INTEGRANTES DEL PROYECTO (GRUPO 1)
+
+| Nombre Completo | Carné | Rol Principal |
+|---|---|---|
+| **Diego Alessandro Constanza Padilla** | **202300601** | Ingeniería de Datos / Modelado dbt & Airflow |
+| **Enner Esaí Mendizabal Castro** | **202302220** | Ingeniería de Datos / Arquitectura ELT & PostgreSQL |
+
+---
+
 ## RESUMEN EJECUTIVO
 
 **SG-Food** es una empresa guatemalteca de distribución y comercialización de productos de consumo masivo (abarrotes, bebidas, lácteos, snacks, panadería, congelados, limpieza y cuidado personal) con operaciones en múltiples cabeceras departamentales de Guatemala.
