@@ -65,7 +65,7 @@ def verify_and_seed_oltp_task():
     """Verifica que el schema oltp_sgfood esté creado y contenga datos."""
     from sqlalchemy import text
     engine = get_engine()
-    with engine.connect() as conn:
+    with engine.begin() as conn:
         schema_exists = conn.execute(
             text("SELECT EXISTS (SELECT 1 FROM information_schema.schemata WHERE schema_name = 'oltp_sgfood');")
         ).scalar()

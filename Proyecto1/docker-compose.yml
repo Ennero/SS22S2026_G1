@@ -35,28 +35,29 @@ services:
       - .env
     environment:
       AIRFLOW__DATABASE__SQL_ALCHEMY_CONN: postgresql+psycopg2://${POSTGRES_USER:-postgres}:${POSTGRES_PASSWORD:-postgres}@postgres:5432/airflow
-    command: >
-      bash -c "
-        echo '[INIT] Verificando base de datos de Airflow...' &&
-        python3 /opt/airflow/elt/init_airflow_db.py &&
-        echo '[INIT] Migrando base de datos de Airflow...' &&
-        airflow db migrate &&
+    entrypoint:
+      - /bin/bash
+      - -c
+      - |
+        echo '[INIT] Verificando base de datos de Airflow...'
+        python3 /opt/airflow/elt/init_airflow_db.py
+        echo '[INIT] Migrando base de datos de Airflow...'
+        airflow db migrate
         airflow users create \
           --username admin \
           --password admin \
           --firstname Admin \
           --lastname User \
           --role Admin \
-          --email admin@sgfood.com || true &&
+          --email admin@sgfood.com || true
         airflow connections add 'postgres_sgfood' \
           --conn-type 'postgres' \
           --conn-host 'postgres' \
           --conn-schema 'sgfood_dw' \
           --conn-login 'postgres' \
           --conn-password 'postgres' \
-          --conn-port 5432 || true &&
+          --conn-port 5432 || true
         airflow variables set 'sgfood_environment' 'production' || true
-      "
     volumes:
       - ./dags:/opt/airflow/dags
       - ./dbt_sgfood:/opt/airflow/dbt_sgfood
