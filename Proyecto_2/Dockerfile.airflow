@@ -1,0 +1,18 @@
+FROM apache/airflow:2.9.3-python3.10
+
+USER root
+
+# Instalar utilitarios del sistema operativo
+RUN apt-get update \
+    && apt-get install -y --no-install-recommends \
+        build-essential \
+        libpq-dev \
+        curl \
+    && apt-get clean \
+    && rm -rf /var/lib/apt/lists/*
+
+USER airflow
+
+# Instalar dependencias de Python (Google Cloud BigQuery, Airflow Providers, pandas)
+COPY requirements.txt /requirements.txt
+RUN pip install --no-cache-dir -r /requirements.txt

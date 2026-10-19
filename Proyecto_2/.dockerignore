@@ -1,0 +1,9 @@
+.git
+.gitignore
+.env
+gcp_credentials.json
+__pycache__
+*.pyc
+logs/
+img/
+docs/

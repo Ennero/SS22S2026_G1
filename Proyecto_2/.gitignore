@@ -1,0 +1,27 @@
+# Archivos de entorno y credenciales sensibles (NUNCA SUBIR A GIT)
+.env
+gcp_credentials.json
+*.json
+!package.json
+!mcp_config.json
+
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+env/
+venv/
+ENV/
+.venv
+
+# Airflow
+logs/
+airflow.cfg
+airflow.db
+
+# Sistema Operativo
+.DS_Store
+Thumbs.db
+Desktop.ini

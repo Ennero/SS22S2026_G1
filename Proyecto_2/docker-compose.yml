@@ -1,0 +1,98 @@
+services:
+  postgres-airflow:
+    image: postgres:16-alpine
+    container_name: bq_airflow_postgres
+    restart: always
+    env_file:
+      - .env
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER:-airflow}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-airflow}
+      POSTGRES_DB: ${POSTGRES_DB:-airflow_db}
+    ports:
+      - "${POSTGRES_PORT:-5433}:5432"
+    volumes:
+      - bq_airflow_postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-airflow} -d ${POSTGRES_DB:-airflow_db}"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+      start_period: 10s
+
+  airflow-init:
+    build:
+      context: .
+      dockerfile: Dockerfile.airflow
+    container_name: bq_airflow_init
+    depends_on:
+      postgres-airflow:
+        condition: service_healthy
+    env_file:
+      - .env
+    environment:
+      AIRFLOW__DATABASE__SQL_ALCHEMY_CONN: postgresql+psycopg2://${POSTGRES_USER:-airflow}:${POSTGRES_PASSWORD:-airflow}@postgres-airflow:5432/${POSTGRES_DB:-airflow_db}
+    entrypoint:
+      - /bin/bash
+      - -c
+      - |
+        echo '[INIT] Migrando base de datos de Airflow...'
+        airflow db migrate
+        echo '[INIT] Creando usuario Administrador...'
+        airflow users create \
+          --username ${AIRFLOW_ADMIN_USER:-admin} \
+          --password ${AIRFLOW_ADMIN_PASSWORD:-admin} \
+          --firstname Diego_Enner \
+          --lastname Grupo1 \
+          --role Admin \
+          --email ${AIRFLOW_ADMIN_EMAIL:-admin@seminario2.usac.edu.gt} || true
+        echo '[INIT] Inicialización finalizada con éxito.'
+    volumes:
+      - ./dags:/opt/airflow/dags
+      - ./sql:/opt/airflow/sql
+      - ./scripts:/opt/airflow/scripts
+
+  airflow:
+    build:
+      context: .
+      dockerfile: Dockerfile.airflow
+    container_name: bq_airflow_app
+    restart: always
+    depends_on:
+      airflow-init:
+        condition: service_completed_successfully
+      postgres-airflow:
+        condition: service_healthy
+    env_file:
+      - .env
+    environment:
+      AIRFLOW__DATABASE__SQL_ALCHEMY_CONN: postgresql+psycopg2://${POSTGRES_USER:-airflow}:${POSTGRES_PASSWORD:-airflow}@postgres-airflow:5432/${POSTGRES_DB:-airflow_db}
+      AIRFLOW__CORE__DAGS_FOLDER: /opt/airflow/dags
+      AIRFLOW__CORE__LOAD_EXAMPLES: "False"
+      AIRFLOW__WEBSERVER__SECRET_KEY: ${AIRFLOW__WEBSERVER__SECRET_KEY:-proyecto2_secret_key_airflow_bigquery_2026}
+      PYTHONPATH: /opt/airflow
+      GCP_PROJECT_ID: ${GCP_PROJECT_ID}
+      GCP_DATASET_ID: ${GCP_DATASET_ID:-nyc_taxi_dw}
+      GCP_LOCATION: ${GCP_LOCATION:-US}
+      GOOGLE_APPLICATION_CREDENTIALS: /opt/airflow/gcp_credentials.json
+    ports:
+      - "8080:8080"
+    volumes:
+      - ./dags:/opt/airflow/dags
+      - ./sql:/opt/airflow/sql
+      - ./scripts:/opt/airflow/scripts
+      - ./:/opt/airflow/config_root:ro
+    command: >
+      bash -c "
+        if [ -f /opt/airflow/config_root/gcp_credentials.json ]; then
+          cp /opt/airflow/config_root/gcp_credentials.json /opt/airflow/gcp_credentials.json
+          echo '[GCP] Archivo gcp_credentials.json cargado exitosamente.'
+        else
+          echo '[GCP] AVISO: gcp_credentials.json no encontrado en la raiz de Proyecto_2. Recuerda colocarlo para autenticar con BigQuery.'
+        fi
+        (airflow scheduler &) && exec airflow webserver
+      "
+
+volumes:
+  bq_airflow_postgres_data:
+    name: bq_airflow_postgres_data
