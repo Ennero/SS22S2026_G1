@@ -285,24 +285,38 @@ Con `ML.PREDICT` se generaron inferencias sobre el conjunto de prueba (Noviembre
 
 ## 10. INFORME VISUAL: TABLERO EN LOOKER STUDIO
 
-- **Enlace Público al Tablero:** [Ver Tablero Interactivo en Looker Studio](https://lookerstudio.google.com/) *(Actualizar con la URL pública generada tras conectar el dataset)*
-- **Plataforma:** Google Looker Studio (100% Gratuito y con acceso público de lectura).
+- **Enlace Público al Tablero Oficial:** [Ver Tablero Interactivo en Looker Studio](https://lookerstudio.google.com/reporting/6f35e95a-771b-4ab3-86b8-b912086bfdea)
+- **Plataforma:** Google Looker Studio (Acceso público de visualización sin necesidad de inicio de sesión).
 
 ### Estructura de Visualizaciones Desarrolladas
 
-1. **Página 1: Exploración y Patrones Urbanos:**
-   - *Gráfico 1 (Temporal):* Curva de demanda de viajes por hora del día, evidenciando las horas pico (7:30-9:00 AM y 5:00-7:30 PM).
-   - *Gráfico 2 (Geográfico):* Mapa de calor y treemap de zonas con mayor afluencia de recogida (`PULocationID`).
-   - *Gráfico 3 (Comercial):* Gráfico circular de distribución de medios de pago y porcentaje promedio de propina aportada.
-2. **Página 2: Benchmarking y Eficiencia en BigQuery:**
-   - Gráfico de barras comparativas de **Bytes Procesados (Estándar vs Optimizado)** para las 3 consultas de benchmark.
-   - Tarjeta KPI de reducción porcentual global (**> 90%**).
-3. **Página 3: Predicciones ML y Rolling Forecast:**
-   - Gráfico de serie temporal móvil (**Rolling Forecast**) que compara:
-     - **Tarifa Real Promedio Diaria** (Línea sólida).
-     - **Predicción Regresión Lineal** (Línea punteada azul).
-     - **Predicción Boosted Trees** (Línea punteada naranja).
-   - Tarjetas dinámicas con los valores de RMSE y MAE calculados sobre el periodo de inferencia.
+#### Página 1: Predicción de Tarifas con BigQuery ML y Rolling Forecast
+- **Tarjetas KPI (Scorecards):**
+  - **MAE Boosted Trees ($1.66 - $1.72):** Error absoluto medio del modelo no lineal XGBoost.
+  - **MAE Regresión Lineal ($1.90 - $1.95):** Error absoluto medio del modelo lineal de referencia.
+  - **Total Viajes Evaluados:** 2,970,631 registros de prueba (Noviembre - Diciembre 2022).
+- **Gráfico de Serie Temporal (Rolling Forecast):**
+  - Curva de **Tarifa Real Promedio Diaria** (línea azul continua).
+  - Curva de **Predicción Boosted Trees** (línea naranja con marcadores puntuales).
+  - Curva de **Predicción Regresión Lineal** (línea celeste discontinua).
+- **Tabla Detallada:** Desglose día por día con volumen de viajes, tarifas promedio reales, valores predichos por cada modelo y MAE diario.
+
+![Rolling Forecast Dashboard](img/looker_forecast_dashboard.png)
+
+---
+
+#### Página 2: Análisis Exploratorio de Datos (EDA)
+- **Tarjetas Resumen y Control:**
+  - **Total Registros Analizados:** Volumen de telemetría procesado.
+  - **Distancia Promedio del Viaje:** ~3.4 millas.
+  - **Tarifa Promedio Global:** ~$13.83 USD.
+  - **Control Interactivo:** Menú desplegable para filtrar por fin de semana (`is_weekend`).
+- **Gráficos Exploratorios:**
+  1. *Tarifa Promedio por Día de la Semana:* Gráfico de barras horizontales ordenado cronológicamente de Domingo a Sábado.
+  2. *Métodos de Pago:* Gráfico circular con etiquetas descriptivas traducidas (**Tarjeta de Crédito: 79.7%** vs **Efectivo: 20.3%**).
+  3. *Distribución Horaria de Demanda:* Gráfico de barras de 24 horas (0 a 23h), evidenciando los picos de movilidad urbana en Nueva York.
+
+![EDA Dashboard](img/looker_eda_dashboard.png)
 
 ---
 
