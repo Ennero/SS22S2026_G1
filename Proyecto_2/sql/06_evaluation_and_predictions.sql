@@ -12,7 +12,7 @@ SELECT
     'Modelo 1: Regresión Lineal Regularizada' AS modelo,
     ROUND(mean_absolute_error, 3) AS mae_dolares,
     ROUND(mean_squared_error, 3) AS mse,
-    ROUND(root_mean_squared_error, 3) AS rmse_dolares,
+    ROUND(SQRT(mean_squared_error), 3) AS rmse_dolares,
     ROUND(r2_score, 4) AS r2_coeficiente_determinacion
 FROM ML.EVALUATE(
     MODEL `nyc_taxi_dw.model_fare_linear_reg`,
@@ -26,7 +26,7 @@ SELECT
     'Modelo 2: Boosted Tree Regressor (XGBoost)' AS modelo,
     ROUND(mean_absolute_error, 3) AS mae_dolares,
     ROUND(mean_squared_error, 3) AS mse,
-    ROUND(root_mean_squared_error, 3) AS rmse_dolares,
+    ROUND(SQRT(mean_squared_error), 3) AS rmse_dolares,
     ROUND(r2_score, 4) AS r2_coeficiente_determinacion
 FROM ML.EVALUATE(
     MODEL `nyc_taxi_dw.model_fare_boosted_tree`,
@@ -39,7 +39,7 @@ FROM ML.EVALUATE(
 SELECT 
     'Modelo 1: Regresión Lineal' AS modelo,
     ROUND(mean_absolute_error, 3) AS mae,
-    ROUND(root_mean_squared_error, 3) AS rmse,
+    ROUND(SQRT(mean_squared_error), 3) AS rmse,
     ROUND(r2_score, 4) AS r2,
     'Línea base paramétrica. Rápido, interpretable pero sensible a no linealidades.' AS conclusion_tecnica
 FROM ML.EVALUATE(
@@ -50,7 +50,7 @@ UNION ALL
 SELECT 
     'Modelo 2: Boosted Tree Regressor' AS modelo,
     ROUND(mean_absolute_error, 3) AS mae,
-    ROUND(root_mean_squared_error, 3) AS rmse,
+    ROUND(SQRT(mean_squared_error), 3) AS rmse,
     ROUND(r2_score, 4) AS r2,
     'Ensamble no lineal. Captura interacciones complejas de congestión y trayectos.' AS conclusion_tecnica
 FROM ML.EVALUATE(
@@ -84,41 +84,39 @@ WITH test_data AS (
     FROM `nyc_taxi_dw.tbl_yellow_trips_optimized`
     WHERE split_flag = 'TEST'
 ),
-pred_linear AS (
+pred_step1 AS (
     SELECT
-        tpep_pickup_datetime,
+        * EXCEPT(predicted_fare_amount),
         predicted_fare_amount AS pred_linear_fare
     FROM ML.PREDICT(
         MODEL `nyc_taxi_dw.model_fare_linear_reg`,
         (SELECT * FROM test_data)
     )
 ),
-pred_boosted AS (
+pred_step2 AS (
     SELECT
-        tpep_pickup_datetime,
+        * EXCEPT(predicted_fare_amount),
         predicted_fare_amount AS pred_boosted_fare
     FROM ML.PREDICT(
         MODEL `nyc_taxi_dw.model_fare_boosted_tree`,
-        (SELECT * FROM test_data)
+        (SELECT * FROM pred_step1)
     )
 )
 SELECT
-    t.pickup_date,
-    t.pickup_hour,
-    t.tpep_pickup_datetime,
-    t.PULocationID,
-    t.DOLocationID,
-    t.trip_distance,
-    t.passenger_count,
-    ROUND(t.actual_fare, 2) AS actual_fare,
-    ROUND(l.pred_linear_fare, 2) AS pred_linear_fare,
-    ROUND(b.pred_boosted_fare, 2) AS pred_boosted_fare,
+    pickup_date,
+    pickup_hour,
+    tpep_pickup_datetime,
+    PULocationID,
+    DOLocationID,
+    trip_distance,
+    passenger_count,
+    ROUND(actual_fare, 2) AS actual_fare,
+    ROUND(pred_linear_fare, 2) AS pred_linear_fare,
+    ROUND(pred_boosted_fare, 2) AS pred_boosted_fare,
     -- Errores residuales individuales
-    ROUND(ABS(t.actual_fare - l.pred_linear_fare), 2) AS residual_abs_linear,
-    ROUND(ABS(t.actual_fare - b.pred_boosted_fare), 2) AS residual_abs_boosted
-FROM test_data t
-JOIN pred_linear l ON t.tpep_pickup_datetime = l.tpep_pickup_datetime
-JOIN pred_boosted b ON t.tpep_pickup_datetime = b.tpep_pickup_datetime;
+    ROUND(ABS(actual_fare - pred_linear_fare), 2) AS residual_abs_linear,
+    ROUND(ABS(actual_fare - pred_boosted_fare), 2) AS residual_abs_boosted
+FROM pred_step2;
 
 -- -----------------------------------------------------------------------------------
 -- 5. TABLA AGREGADA DIARIA PARA EL ROLLING FORECAST EN LOOKER STUDIO

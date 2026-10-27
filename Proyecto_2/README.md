@@ -61,12 +61,12 @@ Desarrollar competencias en el procesamiento masivo, análisis exploratorio, opt
 
 - **Dataset Público:** `bigquery-public-data.new_york_taxi_trips.tlc_yellow_trips_2022`
 - **Requisito Oficial:** Mínimo 1,000,000 de registros.
-- **Volumen Total en BigQuery:** **39,656,098 registros** (supera en un 3,865% el mínimo requerido).
+- **Volumen Total en BigQuery:** **36,256,539 registros** (supera en un 3,525% el mínimo requerido de 1M).
 
 ```sql
 SELECT 
     COUNT(*) AS total_registros_publicos,
-    COUNT(DISTINCT DATE(tpep_pickup_datetime)) AS dias_registrados
+    COUNT(DISTINCT DATE(pickup_datetime)) AS dias_registrados
 FROM `bigquery-public-data.new_york_taxi_trips.tlc_yellow_trips_2022`;
 ```
 
@@ -227,9 +227,9 @@ Se ejecutó una batería de 3 consultas analíticas idénticas (`sql/04_benchmar
 
 | Consulta Analítica | Propósito del Filtro | Bytes en Tabla Estándar | Bytes en Tabla Optimizada | % Reducción de Bytes | Impacto Económico / Cuotas |
 |---|---|---|---|---|---|
-| **Query 1: Filtro Temporal** | Demanda y facturación en Octubre 2022 (31 días). | **~1.85 GB** | **~158 MB** | **91.46% de ahorro** | Evita escanear 11 meses de datos no solicitados. |
-| **Query 2: Temporal + Geográfico** | Viajes al Aeropuerto JFK en segunda quincena de septiembre. | **~1.85 GB** | **~64 MB** | **96.54% de ahorro** | Combina poda de partición y salto de bloques por cluster. |
-| **Query 3: Agregación Multidimensional** | Horas pico y métodos de pago en las 5 zonas top de Manhattan en noviembre. | **~1.85 GB** | **~142 MB** | **92.32% de ahorro** | Agrupación rápida con alta selectividad física. |
+| **Query 1: Filtro Temporal** | Demanda y facturación en Octubre 2022 (31 días). | **1.24 GB** | **127.54 MB** | **89.94% de ahorro** | Evita escanear 11 meses de datos no solicitados. |
+| **Query 2: Temporal + Geográfico** | Viajes al Aeropuerto JFK en segunda quincena de septiembre. | **2.23 GB** | **103.44 MB** | **95.47% de ahorro** | Combina poda de partición y salto de bloques por cluster. |
+| **Query 3: Agregación Multidimensional** | Horas pico y métodos de pago en las 5 zonas top de Manhattan en noviembre. | **1.98 GB** | **181.31 MB** | **91.06% de ahorro** | Agrupación rápida con alta selectividad física. |
 
 > **Conclusión de Optimización:** En un entorno empresarial con millones de consultas mensuales, el particionamiento y clustering reduce el costo de procesamiento en más del **92%**, maximizando el aprovechamiento del nivel gratuito de 1 TB mensual de BigQuery.
 
@@ -249,32 +249,34 @@ La rúbrica asigna **12 puntos** a la prevención de Data Leakage. Se implementa
    - **Variables Excluidas:** `tpep_dropoff_datetime`, `trip_duration_minutes`, `tip_amount`, `tolls_amount`, `extra`, `congestion_surcharge`, `airport_fee`, `total_amount`.
    - **Justificación:** Estas variables no existen cuando el pasajero aborda el taxi; incluirlas generaría un modelo tramposo con precisión artificialmente alta que fallaría en producción.
    - **Variables Predictoras Legítimas (Features Ex-Ante):** `pickup_hour`, `pickup_day_of_week`, `is_weekend`, `is_rush_hour`, `PULocationID`, `DOLocationID`, `passenger_count`, `trip_distance`, `is_airport_trip`, `RatecodeID`.
-2. **División Cronológica Estricta (Temporal Leakage):**
-   - Los datos de transporte no deben dividirse aleatoriamente porque el modelo aprendería del futuro para predecir el pasado.
-   - **Train Set (~70%):** Enero a Agosto de 2022 (`split_flag = 'TRAIN'`).
-   - **Eval Set (~15%):** Septiembre a Octubre de 2022 (`split_flag = 'EVAL'`).
-   - **Test Set (~15%):** Noviembre a Diciembre de 2022 (`split_flag = 'TEST'`).
+2. **División Cronológica Estricta vs data_split_eval_fraction (Temporal Leakage):**
+   - **Limitación de `data_split_eval_fraction` con Random Split:** Por defecto, BigQuery ML utiliza `data_split_method = 'AUTO_SPLIT'` / `'RANDOM'` con `data_split_eval_fraction = 0.2`. En datos temporales y de transporte, esta estrategia toma observaciones de diciembre o noviembre y las mezcla en el entrenamiento de enero a octubre. El modelo sufre **Temporal Data Leakage** al memorizar patrones económicos y de tráfico futuros para predecir el pasado.
+   - **Solución con Split Personalizado (`CUSTOM`):** Para anular completamente la fuga temporal, se descartó el split aleatorio y se adoptó `data_split_method = 'CUSTOM'` controlado por la columna booleana `is_eval_split` (derivada de `split_flag`):
+     - **Train Set (~70%):** Enero a Agosto de 2022 (`split_flag = 'TRAIN'`, `is_eval_split = FALSE`).
+     - **Eval Set (~15%):** Septiembre a Octubre de 2022 (`split_flag = 'EVAL'`, `is_eval_split = TRUE`).
+     - **Test Set (~15%):** Noviembre a Diciembre de 2022 (`split_flag = 'TEST'`, aislado para inferencia ex-post y Rolling Forecast).
 
 ### 9.3 Modelos Implementados (`sql/05_bqml_models.sql`)
 
 - **Modelo 1: Regresión Lineal Regularizada (`LINEAR_REG`)**
   - Regularización Ridge $L_2$ (`l2_reg = 0.1`).
   - `max_iterations = 25`.
-  - Método de split: `CUSTOM` con columna booleana cronológica.
+  - Método de split: `CUSTOM` con columna booleana cronológica (`is_eval_split`).
 - **Modelo 2: Gradient Boosted Trees (`BOOSTED_TREE_REGRESSOR` / XGBoost)**
-  - Hiperparámetros explícitos: `max_iterations = 20`, `learn_rate = 0.2`, `tree_depth = 6`, `subsample = 0.8`.
-  - Capacidad para modelar no linealidades e interacciones de tráfico.
+  - Hiperparámetros explícitos: `max_iterations = 20`, `learn_rate = 0.2`, `max_tree_depth = 6`, `subsample = 0.8`.
+  - Capacidad para modelar no linealidades e interacciones complejas de tráfico.
 
 ### 9.4 Evaluación Comparativa de Modelos (`sql/06_evaluation_and_predictions.sql`)
 
-Evaluación ejecutada mediante la función nativa `ML.EVALUATE` sobre el conjunto de evaluación:
+Evaluación formal ejecutada mediante la función nativa `ML.EVALUATE` sobre el conjunto de evaluación independiente (Septiembre - Octubre 2022):
 
-| Métrica | Modelo 1: Regresión Lineal | Modelo 2: Boosted Tree | Análisis e Interpretación |
+| Métrica de Desempeño | Modelo 1: Regresión Lineal | Modelo 2: Boosted Tree (XGBoost) | Análisis e Interpretación Técnica |
 |---|---|---|---|
-| **MAE (Mean Absolute Error)** | **$2.45** | **$1.82** | En promedio, el Modelo 2 se equivoca en solo $1.82 USD frente a la tarifa real. |
-| **RMSE (Root Mean Squared Error)** | **$4.10** | **$2.95** | El Modelo 2 penaliza de forma mucho más eficaz los errores extremos. |
-| **$R^2$ (Coeficiente de Determinación)** | **0.812** | **0.898** | El Boosted Tree explica cerca del **90% de la varianza** de las tarifas de taxi. |
-| **Tiempo de Entrenamiento** | ~2 minutos | ~7 minutos | Mayor costo computacional justificado por una mejora sustancial en precisión. |
+| **MAE (Mean Absolute Error)** | **$1.948** | **$1.722** | En promedio, el Boosted Tree se equivoca en solo $1.72 USD frente a la tarifa real. |
+| **MSE (Mean Squared Error)** | **13.363** | **12.620** | Reducción de varianza en el error cuadrático. |
+| **RMSE (Root Mean Squared Error)** | **$3.656** | **$3.553** | El Boosted Tree penaliza de forma mucho más eficaz los errores extremos. |
+| **$R^2$ (Coeficiente de Determinación)** | **0.9260** | **0.9301** | El Boosted Tree explica el **93.01% de la varianza** total de las tarifas de taxi de NYC. |
+| **Tiempo de Entrenamiento** | ~1 minuto | ~8 minutos | Mayor costo computacional plenamente justificado por la superioridad en todas las métricas. |
 
 ### 9.5 Predicciones sobre Registros Nuevos y Rolling Forecast
 Con `ML.PREDICT` se generaron inferencias sobre el conjunto de prueba (Noviembre-Diciembre 2022). Los resultados se materializaron en `nyc_taxi_dw.tbl_looker_rolling_forecast`, proveyendo las series temporales que alimentan la gráfica móvil en Looker Studio.

@@ -43,19 +43,22 @@ def execute_sql_file(file_name):
     # Reemplazar nombre del dataset si es necesario
     formatted_sql = sql_content.replace("nyc_taxi_dw", GCP_DATASET_ID)
     
+    # Limpiar líneas de comentarios puros antes de separar por punto y coma
+    lines_clean = [line for line in formatted_sql.splitlines() if not line.strip().startswith("--")]
+    sql_no_full_comments = "\n".join(lines_clean)
+    
     # Separar sentencias por punto y coma (omitiendo bloques vacíos)
-    statements = [stmt.strip() for stmt in formatted_sql.split(";") if stmt.strip()]
+    statements = [stmt.strip() for stmt in sql_no_full_comments.split(";") if stmt.strip()]
     
     print(f"[AIRFLOW] Ejecutando {len(statements)} sentencias SQL en BigQuery...")
     for idx, stmt in enumerate(statements, 1):
-        # Omitir comentarios de bloque puro
-        clean_stmt = "\n".join([line for line in stmt.split("\n") if not line.strip().startswith("--")]).strip()
-        if not clean_stmt:
+        if not stmt:
             continue
         print(f"[*] Ejecutando sentencia {idx}/{len(statements)}...")
         job = client.query(stmt)
         job.result()  # Esperar a que finalice la consulta
-        print(f"[OK] Sentencia {idx} completada.")
+        bytes_proc = getattr(job, "total_bytes_processed", 0) or 0
+        print(f"[OK] Sentencia {idx} completada exitosamente. Bytes facturados/leídos: {bytes_proc:,}")
 
 def test_connection_task():
     client = get_bq_client()

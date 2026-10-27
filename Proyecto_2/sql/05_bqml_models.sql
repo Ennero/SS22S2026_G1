@@ -16,7 +16,7 @@
 --    - Variable Objetivo (Target / Output): `fare_amount` (Tarifa base del viaje en USD).
 --    - Variables Excluidas (PROHIBIDAS durante el entrenamiento):
 --      * `tpep_dropoff_datetime`: La hora exacta de llegada es desconocida al abordar el taxi.
---      * `trip_duration_minutes`: Calculada a partir del dropoff; solo se conoce tras finalizar.
+--      * `trip_duration_minutes`: Calculada a partir del dropoff, solo se conoce tras finalizar.
 --      * `tip_amount`: La propina la decide el cliente al momento de pagar tras el viaje.
 --      * `tolls_amount`, `extra`, `congestion_surcharge`, `airport_fee`, `total_amount`:
 --        Son recargos post-viaje o componentes aditivos de la tarifa total.
@@ -32,13 +32,19 @@
 --      * `is_airport_trip`: Indicador de origen/destino en JFK, LaGuardia o Newark.
 --      * `CAST(RatecodeID AS STRING)`: Tarifa negociada/fija oficial.
 --
--- 2. PREVENCIÓN DE TEMPORAL LEAKAGE (FUGA POR CONTAMINACIÓN TEMPORAL):
---    - En series temporales y movilidad urbana, el split aleatorio tradicional (RANDOM)
---      provoca que el modelo aprenda del "futuro" para predecir el "pasado".
---    - Solución: Split cronológico estricto:
---      * TRAIN SET (Enero - Agosto 2022): split_flag = 'TRAIN' (~70% de datos).
---      * EVAL SET (Septiembre - Octubre 2022): split_flag = 'EVAL' (~15% de datos).
---      * TEST SET (Noviembre - Diciembre 2022): split_flag = 'TEST' (~15% de datos para predicción).
+-- 2. PREVENCIÓN DE TEMPORAL LEAKAGE: DATA_SPLIT_EVAL_FRACTION VS SPLIT PERSONALIZADO
+--    - BigQuery ML ofrece la opción `data_split_eval_fraction` (por defecto 0.2 en AUTO_SPLIT / RANDOM),
+--      la cual separa aleatoriamente el 20% de filas para evaluación.
+--    - LIMITACIÓN Y RIESGO DE DATA LEAKAGE: En datos temporales y series de movilidad urbana,
+--      un split aleatorio con `data_split_eval_fraction` mezcla observaciones de noviembre o diciembre
+--      en el entrenamiento para predecir viajes de enero a octubre. Esto contamina el modelo con
+--      información futura (precios de combustible, estacionalidad, inflación, eventos futuros).
+--    - SOLUCIÓN METODOLÓGICA (SPLIT PERSONALIZADO / CUSTOM SPLIT):
+--      Se utiliza `data_split_method = 'CUSTOM'` junto con la columna lógica `data_split_col = 'is_eval_split'`,
+--      asegurando que el entrenamiento sea 100% histórico y la evaluación sea estrictamente futura:
+--      * TRAIN SET (Enero - Agosto 2022): split_flag = 'TRAIN' (~70% de datos, is_eval_split = FALSE).
+--      * EVAL SET (Septiembre - Octubre 2022): split_flag = 'EVAL' (~15% de datos, is_eval_split = TRUE).
+--      * TEST SET (Noviembre - Diciembre 2022): split_flag = 'TEST' (~15% de datos para inferencia y rolling forecast).
 -- ===================================================================================
 
 -- -----------------------------------------------------------------------------------
@@ -94,7 +100,7 @@ FROM `nyc_taxi_dw.vw_bqml_training_data`;
 -- Hiperparámetros explícitos:
 -- - `max_iterations = 20`: Número de árboles potenciados a construir.
 -- - `learn_rate = 0.2`: Tasa de aprendizaje que pondera la contribución de cada árbol.
--- - `tree_depth = 6`: Profundidad máxima de cada árbol de decisión.
+-- - `max_tree_depth = 6`: Profundidad máxima de cada árbol de decisión.
 -- - `subsample = 0.8`: Fracción de filas sub-muestreadas aleatoriamente por árbol.
 -- - `data_split_method = 'CUSTOM'`: Split cronológico idéntico al Modelo 1.
 CREATE OR REPLACE MODEL `nyc_taxi_dw.model_fare_boosted_tree`
@@ -103,7 +109,7 @@ OPTIONS(
     input_label_cols = ['fare_amount'],
     max_iterations = 20,
     learn_rate = 0.2,
-    tree_depth = 6,
+    max_tree_depth = 6,
     subsample = 0.8,
     data_split_method = 'CUSTOM',
     data_split_col = 'is_eval_split'

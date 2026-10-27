@@ -19,6 +19,7 @@ Cada carpeta es una entrega independiente, con su propio README, datos y código
 |---|---|---|
 | Práctica 1 | [`Practica1/`](Practica1/) | ETL de un dataset crudo de vuelos (~10 000 registros): limpieza, modelo estrella (6 dimensiones + hechos), carga a SQL Server 2022 en Docker y 10 consultas analíticas. |
 | Tarea 1 | [`Tarea1/`](Tarea1/) | Limpieza y análisis inicial con Python y Pandas sobre `dataset_sucio.csv` (clientes, gasto, ciudad y categoría): duplicados, nulos, estandarización, pivotes, gráficos y CSV depurado. |
+| Proyecto 2 | [`Proyecto_2/`](Proyecto_2/) | Procesamiento masivo, optimización con particiones/clustering y BigQuery ML (Regresión Lineal y Boosted Trees) sobre NYC Taxi Trips 2022 (~39.6M registros), orquestado con Apache Airflow (Docker) y visualizado en Looker Studio. |
 
 Otros archivos en la raíz:
 
@@ -28,7 +29,7 @@ Otros archivos en la raíz:
 ## Cómo empezar
 
 1. Clonar el repositorio.
-2. Entrar a la carpeta de la entrega que toque (`Practica1/` o `Tarea1/`).
+2. Entrar a la carpeta de la entrega que toque (`Practica1/`, `Tarea1/` o `Proyecto_2/`).
 3. Seguir el README de esa carpeta (dependencias, Docker si aplica, y comando de ejecución).
 
 ```
@@ -36,5 +37,6 @@ SS22S2026_G1/
 ├── README.md              ← Este índice
 ├── LICENSE
 ├── Practica1/             ← ETL vuelos → SQL Server
-└── Tarea1/                ← Limpieza y análisis con Pandas
+├── Tarea1/                ← Limpieza y análisis con Pandas
+└── Proyecto_2/            ← BigQuery, Optimización, BQML & Airflow
 ```

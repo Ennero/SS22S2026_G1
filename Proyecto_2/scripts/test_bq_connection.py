@@ -28,8 +28,9 @@ def test_connection():
         return False
 
     if credentials_path and not os.path.exists(credentials_path):
-        print(f"\n[!] AVISO: El archivo de credenciales '{credentials_path}' no existe localmente.")
-        print("    Si ejecutas en Cloud Shell o con 'gcloud auth login', se usará la autenticación por defecto.")
+        print(f"\n[!] AVISO: El archivo de credenciales '{credentials_path}' no existe en este host.")
+        print("    Usando autenticación predeterminada de gcloud / Application Default Credentials (ADC).")
+        os.environ.pop("GOOGLE_APPLICATION_CREDENTIALS", None)
 
     try:
         from google.cloud import bigquery

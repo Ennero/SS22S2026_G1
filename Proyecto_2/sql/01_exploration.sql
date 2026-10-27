@@ -12,9 +12,9 @@
 -- Este bloque demuestra que el dataset público excede ampliamente el requisito mínimo.
 SELECT 
     COUNT(*) AS total_registros_publicos,
-    COUNT(DISTINCT DATE(tpep_pickup_datetime)) AS dias_con_registros,
-    MIN(tpep_pickup_datetime) AS fecha_minima_registrada,
-    MAX(tpep_pickup_datetime) AS fecha_maxima_registrada
+    COUNT(DISTINCT DATE(pickup_datetime)) AS dias_con_registros,
+    MIN(pickup_datetime) AS fecha_minima_registrada,
+    MAX(pickup_datetime) AS fecha_maxima_registrada
 FROM `bigquery-public-data.new_york_taxi_trips.tlc_yellow_trips_2022`;
 
 -- -----------------------------------------------------------------------------------
@@ -22,14 +22,14 @@ FROM `bigquery-public-data.new_york_taxi_trips.tlc_yellow_trips_2022`;
 -- -----------------------------------------------------------------------------------
 SELECT 
     COUNT(*) AS total_filas,
-    COUNTIF(VendorID IS NULL) AS nulos_vendor,
-    COUNTIF(tpep_pickup_datetime IS NULL) AS nulos_pickup_time,
-    COUNTIF(tpep_dropoff_datetime IS NULL) AS nulos_dropoff_time,
+    COUNTIF(vendor_id IS NULL) AS nulos_vendor,
+    COUNTIF(pickup_datetime IS NULL) AS nulos_pickup_time,
+    COUNTIF(dropoff_datetime IS NULL) AS nulos_dropoff_time,
     COUNTIF(passenger_count IS NULL) AS nulos_passenger_count,
     COUNTIF(trip_distance IS NULL) AS nulos_trip_distance,
-    COUNTIF(RatecodeID IS NULL) AS nulos_ratecode,
-    COUNTIF(PULocationID IS NULL) AS nulos_pu_location,
-    COUNTIF(DOLocationID IS NULL) AS nulos_do_location,
+    COUNTIF(rate_code IS NULL) AS nulos_ratecode,
+    COUNTIF(pickup_location_id IS NULL) AS nulos_pu_location,
+    COUNTIF(dropoff_location_id IS NULL) AS nulos_do_location,
     COUNTIF(payment_type IS NULL) AS nulos_payment_type,
     COUNTIF(fare_amount IS NULL) AS nulos_fare_amount,
     COUNTIF(tip_amount IS NULL) AS nulos_tip_amount,
@@ -46,8 +46,8 @@ FROM `bigquery-public-data.new_york_taxi_trips.tlc_yellow_trips_2022`;
 -- d) Distancias cero con cobros elevados o distancias superiores a 150 millas.
 -- e) Viajes donde la llegada ocurre antes que la partida.
 SELECT
-    COUNTIF(EXTRACT(YEAR FROM tpep_pickup_datetime) != 2022) AS viajes_fuera_de_2022,
-    COUNTIF(tpep_dropoff_datetime <= tpep_pickup_datetime) AS dropoff_invalido_menor_pickup,
+    COUNTIF(EXTRACT(YEAR FROM pickup_datetime) != 2022) AS viajes_fuera_de_2022,
+    COUNTIF(dropoff_datetime <= pickup_datetime) AS dropoff_invalido_menor_pickup,
     COUNTIF(fare_amount < 2.50) AS tarifas_menores_base_minima,
     COUNTIF(fare_amount < 0) AS tarifas_negativas,
     COUNTIF(total_amount < 0) AS montos_totales_negativos,
@@ -99,11 +99,11 @@ FROM `bigquery-public-data.new_york_taxi_trips.tlc_yellow_trips_2022`;
 SELECT
     payment_type,
     CASE payment_type
-        WHEN 1 THEN 'Tarjeta de Crédito'
-        WHEN 2 THEN 'Efectivo'
-        WHEN 3 THEN 'Sin Cargo'
-        WHEN 4 THEN 'Disputa'
-        WHEN 5 THEN 'Desconocido'
+        WHEN '1' THEN 'Tarjeta de Crédito'
+        WHEN '2' THEN 'Efectivo'
+        WHEN '3' THEN 'Sin Cargo'
+        WHEN '4' THEN 'Disputa'
+        WHEN '5' THEN 'Desconocido'
         ELSE 'Otro / Nulo'
     END AS descripcion_pago,
     COUNT(*) AS total_viajes,
@@ -118,13 +118,13 @@ ORDER BY total_viajes DESC;
 -- 6. DISTRIBUCIÓN TEMPORAL DE DEMANDA POR MES DE 2022
 -- -----------------------------------------------------------------------------------
 SELECT
-    EXTRACT(MONTH FROM tpep_pickup_datetime) AS mes_numero,
-    FORMAT_DATE('%B', DATE(tpep_pickup_datetime)) AS nombre_mes,
+    EXTRACT(MONTH FROM pickup_datetime) AS mes_numero,
+    FORMAT_DATE('%B', DATE(pickup_datetime)) AS nombre_mes,
     COUNT(*) AS total_viajes,
     ROUND(SUM(total_amount), 2) AS recaudacion_total,
     ROUND(AVG(fare_amount), 2) AS tarifa_media,
     ROUND(AVG(trip_distance), 2) AS distancia_media
 FROM `bigquery-public-data.new_york_taxi_trips.tlc_yellow_trips_2022`
-WHERE EXTRACT(YEAR FROM tpep_pickup_datetime) = 2022
+WHERE EXTRACT(YEAR FROM pickup_datetime) = 2022
 GROUP BY mes_numero, nombre_mes
 ORDER BY mes_numero;

@@ -28,6 +28,10 @@ def run_benchmarks(dry_run=True):
         print("[!] ERROR: Configura GCP_PROJECT_ID en tu archivo .env")
         return
 
+    cred_path = os.getenv("GOOGLE_APPLICATION_CREDENTIALS")
+    if cred_path and not os.path.exists(cred_path):
+        os.environ.pop("GOOGLE_APPLICATION_CREDENTIALS", None)
+
     from google.cloud import bigquery
     client = bigquery.Client(project=project_id)
 
