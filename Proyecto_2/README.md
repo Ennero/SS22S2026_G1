@@ -164,7 +164,8 @@ Proyecto_2/
 ├── docs/
 │   ├── 798_Proyecto_2_2S2026.docx.pdf # Enunciado oficial del curso
 │   ├── proyecto2.md                  # Especificaciones y rúbrica del proyecto
-│   └── INFORME_TECNICO_PROYECTO_2.md # Informe técnico formal y memoria completa de entrega
+│   ├── INFORME_TECNICO_PROYECTO_2.md # Informe técnico formal y memoria completa de entrega
+│   └── GUIA_DE_DEFENSA_Y_PRESENTACION.md # Guion detallado paso a paso para la defensa oral en vivo
 └── img/                              # Evidencias técnicas requeridas por la rúbrica
     ├── 01_bq_dataset_tables.png      # Captura de BigQuery Console con dataset, tablas y modelos
     ├── looker_forecast_dashboard.png # Tablero de Rolling Forecast en Looker Studio
