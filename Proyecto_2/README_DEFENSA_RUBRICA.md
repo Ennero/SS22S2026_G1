@@ -1,331 +1,235 @@
-# 📋 GUÍA DE DEFENSA Y RÚBRICA PASO A PASO (100 PUNTOS)
-## PROYECTO 2: SEMINARIO DE SISTEMAS 2 — SEGUNDO SEMESTRE 2026
-### Escuela de Ciencias y Sistemas — Facultad de Ingeniería, USAC
+# 📑 HOJA DE CALIFICACIÓN Y EVIDENCIAS VISUALES (100 PUNTOS)
+## PROYECTO 2: PROCESAMIENTO, ANÁLISIS MASIVO Y MACHINE LEARNING EN BIGQUERY
+### Seminario de Sistemas 2 — Segundo Semestre 2026
+#### Escuela de Ciencias y Sistemas — Facultad de Ingeniería, USAC
 
 ---
 
-### 👥 DATOS DEL EQUIPO (GRUPO 1)
-| Nombre Completo | Carné | Correo Institucional | Rol Principal |
+### 👥 DATOS DEL GRUPO 1
+| Integrante | Carné | Correo Institucional | Rol Principal |
 |---|---|---|---|
 | **Diego Alessandro Constanza Padilla** | **202300601** | dconstanza@ingenieria.usac.edu.gt | Modelado BQML, Optimización y Benchmarking |
 | **Enner Esaí Mendizabal Castro** | **202302220** | emendizabal@ingenieria.usac.edu.gt | Arquitectura Cloud, Orquestación Airflow y Looker Studio |
 
 * **Proyecto GCP:** `project-0d3c28c7-a4e0-44ad-a4e`
-* **Dataset Personal:** `nyc_taxi_dw` (Ubicación: `US`)
-* **Tablero Looker Studio:** [Enlace Público Oficial](https://lookerstudio.google.com/reporting/6f35e95a-771b-4ab3-86b8-b912086bfdea)
-* **Airflow Web UI:** `http://localhost:8080` (admin / admin)
+* **Dataset en BigQuery:** `nyc_taxi_dw` (Ubicación: `US`)
+* **Tablero Interactivo Público:** [Ver Tablero en Looker Studio](https://lookerstudio.google.com/reporting/6f35e95a-771b-4ab3-86b8-b912086bfdea)
+* **Airflow Local:** [http://localhost:8080](http://localhost:8080) (Usuario: `admin`, Clave: `admin`)
 
 ---
 
-## 📊 RESUMEN DE PUNTUACIONES (HOJA DE CALIFICACIÓN)
+## 📊 ÍNDICE DE EVALUACIÓN RÁPIDA
 
-| No. | Criterio de Evaluación | Pts | Estado | Qué Mostrar |
-|:---:|---|:---:|:---:|---|
-| **1.1** | Conexión y comprensión del dataset público | **8** | ✅ 100% | Conteo >36.2M y auditoría de nulos en BigQuery |
-| **1.2** | Consultas SQL avanzadas y transformaciones | **8** | ✅ 100% | CTEs, funciones de ventana y 33.2M filas limpias |
-| **1.3** | Optimización con particiones y clustering | **12** | ✅ 100% | Partición diaria y cluster por zonas en Detalles |
-| **1.4** | Implementación correcta de al menos 2 modelos en BQML | **8** | ✅ 100% | `model_fare_linear_reg` y `model_fare_boosted_tree` |
-| **1.5** | Evaluación y comparación con métricas e hiperparámetros | **12** | ✅ 100% | Consulta `ML.EVALUATE` en vivo (MAE, RMSE, R²) |
-| **1.6** | Prevención de data leakage y manejo correcto del split | **12** | ✅ 100% | Split cronológico determinista y exclusión post-evento |
-| **2.1** | Análisis correcto de patrones y tendencias | **10** | ✅ 100% | Patrón bimodal, 79.7% tarjeta y viajes a JFK/LGA |
-| **2.2** | Visualización de resultados exploratorios y predicciones | **10** | ✅ 100% | Dashboard en Looker Studio (Forecast y EDA) |
-| **2.3** | Ingeniería de características y justificación de variables | **10** | ✅ 100% | 9 variables derivadas (`trip_speed_mph`, `is_rush_hour`, etc.) |
-| **2.4** | Identificación de variables de entrada, salida y objetivo | **5** | ✅ 100% | Target: `fare_amount`, Features ex-ante sin fuga |
-| **2.5** | Comparación entre consultas estándar y optimizadas | **5** | ✅ 100% | Demostración en vivo de bytes: **1.24 GB vs 127 MB** |
-| **TOTAL** | **PUNTUACIÓN MÁXIMA** | **100** | **EXCELENCIA** | **Proyecto 100% verificado y probado en BigQuery** |
-
----
-
-## 1. HABILIDADES (60 PUNTOS)
-
-```
-+-----------------------------------------------------------------------------------------------+
-| CRITERIO 1.1: Conexión y comprensión del dataset público (8 Pts)                              |
-+-----------------------------------------------------------------------------------------------+
-```
-* **Qué mostrar en pantalla:**
-  Abre BigQuery Console en blanco y ejecuta esta consulta rápida para que el evaluador vea el conteo en tiempo real:
-  ```sql
-  SELECT 
-      COUNT(*) AS total_registros_publicos,
-      COUNT(DISTINCT DATE(pickup_datetime)) AS dias_registrados,
-      MIN(pickup_datetime) AS fecha_minima,
-      MAX(pickup_datetime) AS fecha_maxima
-  FROM `bigquery-public-data.new_york_taxi_trips.tlc_yellow_trips_2022`;
-  ```
-* **Qué decir:**
-  > *"Nos conectamos exitosamente al dataset público `bigquery-public-data.new_york_taxi_trips.tlc_yellow_trips_2022`. Como se aprecia en pantalla, cuenta con **36,256,539 registros**, superando en más de un 3,500% el millón mínimo requerido por el enunciado.*
-  > *En nuestro script `01_exploration.sql` auditamos la calidad: comprobamos que no hay nulos en tarifas ni marcas temporales, pero detectamos anomalías físicas habituales en telemetría de taxímetros (tarifas negativas por disputas, distancias nulas con cobro y desincronización de relojes GPS) que fueron depuradas en la fase siguiente."*
-* **Dato clave a recordar:** 36,256,539 registros en el dataset público.
+| Criterio Oficial | Pts | Estado | Código Fuente | Captura Directa |
+|---|:---:|:---:|:---:|:---:|
+| **1.1 Conexión y comprensión del dataset** | **8** | ✅ 100% | [01_exploration.sql](file:///c:/Users/Enner/Desktop/SS22S2026_G1/Proyecto_2/sql/01_exploration.sql) | [Ver Conteo 36.2M](#11-conexión-y-comprensión-del-dataset-público-8-pts) |
+| **1.2 Consultas SQL y transformaciones** | **8** | ✅ 100% | [02_cleaning_and_features.sql](file:///c:/Users/Enner/Desktop/SS22S2026_G1/Proyecto_2/sql/02_cleaning_and_features.sql) | [Ver Tabla Limpia y Columnas](#12-consultas-sql-avanzadas-y-transformaciones-8-pts) |
+| **1.3 Optimización (Partición + Cluster)** | **12** | ✅ 100% | [03_partitioning_and_clustering.sql](file:///c:/Users/Enner/Desktop/SS22S2026_G1/Proyecto_2/sql/03_partitioning_and_clustering.sql) | [Ver Detalles Partición/Cluster](#13-optimización-con-particiones-y-clustering-12-pts) |
+| **1.4 Implementación de 2 modelos BQML** | **8** | ✅ 100% | [05_bqml_models.sql](file:///c:/Users/Enner/Desktop/SS22S2026_G1/Proyecto_2/sql/05_bqml_models.sql) | [Ver Detalles de Ambos Modelos](#14-implementación-correcta-de-al-menos-2-modelos-en-bigquery-ml-8-pts) |
+| **1.5 Evaluación, métricas e hiperparámetros** | **12** | ✅ 100% | [06_evaluation_and_predictions.sql](file:///c:/Users/Enner/Desktop/SS22S2026_G1/Proyecto_2/sql/06_evaluation_and_predictions.sql) | [Ver Evaluación ML.EVALUATE](#15-evaluación-y-comparación-entre-modelos-con-métricas-e-hiperparámetros-12-pts) |
+| **1.6 Prevención de Data Leakage y Split** | **12** | ✅ 100% | [05_bqml_models.sql](file:///c:/Users/Enner/Desktop/SS22S2026_G1/Proyecto_2/sql/05_bqml_models.sql#L35-L48) | [Ver Conteo Split Train/Eval/Test](#16-prevención-de-data-leakage-y-manejo-correcto-del-split-de-datos-12-pts) |
+| **2.1 Análisis de patrones y tendencias** | **10** | ✅ 100% | [README.md (Sec. 12)](file:///c:/Users/Enner/Desktop/SS22S2026_G1/Proyecto_2/README.md#12-hallazgos-clave-del-negocio) | [Ver Gráfica EDA](#21-análisis-correcto-de-patrones-y-tendencias-10-pts) |
+| **2.2 Visualizaciones y predicciones** | **10** | ✅ 100% | [Looker Studio](https://lookerstudio.google.com/reporting/6f35e95a-771b-4ab3-86b8-b912086bfdea) | [Ver Rolling Forecast](#22-visualización-de-resultados-exploratorios-y-predicciones-10-pts) |
+| **2.3 Ingeniería de características** | **10** | ✅ 100% | [02_cleaning_and_features.sql](file:///c:/Users/Enner/Desktop/SS22S2026_G1/Proyecto_2/sql/02_cleaning_and_features.sql#L52-L80) | [Ver Variables Calculadas](#23-ingeniería-de-características-y-justificación-de-variables-10-pts) |
+| **2.4 Variables entrada, salida y objetivo** | **5** | ✅ 100% | [05_bqml_models.sql](file:///c:/Users/Enner/Desktop/SS22S2026_G1/Proyecto_2/sql/05_bqml_models.sql#L15-L34) | [Ver Features y Label en BigQuery](#24-identificación-correcta-de-variables-de-entrada-salida-y-objetivo-del-modelo-5-pts) |
+| **2.5 Comparación estándar vs optimizada** | **5** | ✅ 100% | [04_benchmark_comparison.sql](file:///c:/Users/Enner/Desktop/SS22S2026_G1/Proyecto_2/sql/04_benchmark_comparison.sql) | [Ver 1.24 GB vs 127 MB](#25-comparación-entre-consultas-estándar-y-optimizadas-5-pts) |
+| **TOTAL GENERAL** | **100** | **EXCELENCIA** | [Orquestación Airflow](#3-orquestación-automatizada-con-apache-airflow-entregable-técnico) | **100 / 100 PUNTOS** |
 
 ---
 
-```
-+-----------------------------------------------------------------------------------------------+
-| CRITERIO 1.2: Consultas SQL avanzadas y transformaciones (8 Pts)                              |
-+-----------------------------------------------------------------------------------------------+
-```
-* **Qué mostrar en pantalla:**
-  En BigQuery, haz clic sobre la tabla `nyc_taxi_dw.tbl_yellow_trips_clean`, entra a **Detalles** y señala con el cursor el campo **Número de filas: 33,226,079**.
-  Abre en tu editor de código o GitHub el archivo `sql/02_cleaning_and_features.sql`.
-* **Qué decir:**
-  > *"En `02_cleaning_and_features.sql` implementamos transformaciones avanzadas utilizando CTEs (`WITH base_datos AS ...`), funciones temporales `EXTRACT` y `TIMESTAMP_DIFF`, funciones de ventana analítica `SUM OVER()`, conversiones de tipos con `SAFE_CAST` y divisiones con `SAFE_DIVIDE`.*
-  > *Aplicamos filtros estrictos basados en la normativa de la Comisión de Taxis de NYC (TLC): viajes de 1 a 180 minutos, distancias de 0.1 a 100 millas, tarifas entre el mínimo reglamentario de $2.50 y $500 USD, y velocidades menores a 75 mph, obteniendo **33.2 millones de registros limpios y consistentes**."*
-* **Dato clave a recordar:** 33,226,079 filas limpias resultantes.
+# PARTE 1: HABILIDADES (60 PUNTOS)
 
 ---
 
-```
-+-----------------------------------------------------------------------------------------------+
-| CRITERIO 1.3: Optimización con particiones y clustering (12 Pts)                              |
-+-----------------------------------------------------------------------------------------------+
-```
-* **Qué mostrar en pantalla:**
-  En BigQuery, haz clic en la tabla `tbl_yellow_trips_optimized` y entra a la pestaña **Detalles**. Señala:
-  * *Tipo de tabla: Con particiones (por día en `tpep_pickup_datetime`)*.
-  * *Clúster por: `PULocationID, DOLocationID, payment_type`*.
-* **Qué decir:**
-  > *"Creamos dos tablas con exactamente los mismos 33.2 millones de datos: `tbl_yellow_trips_standard` (almacenamiento convencional) y `tbl_yellow_trips_optimized`.*
-  > *Justificación de las técnicas:*
-  > 1. ***Particionamiento Diario por Fecha:** Divide la tabla en 365 particiones físicas independientes. Al consultar un rango de días, BigQuery activa **Partition Pruning**, ignorando los bloques de datos de los meses no solicitados.*
-  > 2. ***Clustering Multidimensional:** Agrupa co-localizadamente los registros contiguos por origen, destino y método de pago, permitiendo **Block Skipping** al consultar trayectos hacia aeropuertos o distritos de alta demanda."*
+### 1.1 Conexión y comprensión del dataset público (8 pts)
+
+* **Dataset público:** `bigquery-public-data.new_york_taxi_trips.tlc_yellow_trips_2022`.
+* **Requisito del curso:** Más de 1,000,000 de registros.
+* **Resultado auditado en BigQuery:** **36,256,539 registros** (supera en un 3,525% el requisito).
+* **Script SQL:** [01_exploration.sql](file:///c:/Users/Enner/Desktop/SS22S2026_G1/Proyecto_2/sql/01_exploration.sql).
+
+#### 📸 Evidencia en BigQuery Console (Conteo de 36,256,539 registros):
+![Conteo Público BigQuery](img/01_bq_dataset_public_count.png)
 
 ---
 
-```
-+-----------------------------------------------------------------------------------------------+
-| CRITERIO 1.4: Implementación correcta de al menos 2 modelos en BigQuery ML (8 Pts)           |
-+-----------------------------------------------------------------------------------------------+
-```
-* **Qué mostrar en pantalla:**
-  En el panel izquierdo de BigQuery, despliega `nyc_taxi_dw > Modelos` mostrando:
-  * `model_fare_linear_reg`
-  * `model_fare_boosted_tree`
-  Abre el archivo `sql/05_bqml_models.sql`.
-* **Qué decir:**
-  > *"Entrenamos dos modelos predictivos in-database con BigQuery ML sobre la vista preparada `vw_bqml_training_data`:*
-  > 1. ***Modelo 1 (LINEAR_REG):** Regresión lineal Ridge con regularización L2 (`l2_reg = 0.1`) para penalizar pesos y evitar sobreajuste, con 25 iteraciones.*
-  > 2. ***Modelo 2 (BOOSTED_TREE_REGRESSOR):** Árboles potenciados por gradiente (XGBoost) con hiperparámetros explícitos: 20 árboles (`max_iterations = 20`), tasa de aprendizaje `learn_rate = 0.2`, profundidad máxima de 6 niveles (`max_tree_depth = 6`) y submuestreo del 80% (`subsample = 0.8`).*
-  > *Ambos modelos compilaron y entrenaron exitosamente sin errores de sintaxis."*
+### 1.2 Consultas SQL avanzadas y transformaciones (8 pts)
+
+* **Script SQL:** [02_cleaning_and_features.sql](file:///c:/Users/Enner/Desktop/SS22S2026_G1/Proyecto_2/sql/02_cleaning_and_features.sql).
+* **Tabla resultante:** `nyc_taxi_dw.tbl_yellow_trips_clean` (**33,226,079 filas limpias**).
+* **Técnicas aplicadas:**
+  - CTEs (`WITH base_datos AS ...`).
+  - Funciones temporales: `TIMESTAMP_DIFF(dropoff, pickup, SECOND) / 60.0`, `EXTRACT(HOUR ...)`, `EXTRACT(DAYOFWEEK ...)`.
+  - Tratamiento seguro de datos: `SAFE_CAST` y `SAFE_DIVIDE`.
+  - Reglas de negocio TLC de NYC: viajes entre 1 y 180 min, velocidades < 75 mph y tarifas entre $2.50 y $500.
+
+#### 📸 Evidencia en BigQuery Console (Registros limpios con variables derivadas calculadas):
+![Tabla Limpia y Variables Derivadas](img/02_cleaning_and_features_table.png)
 
 ---
 
-```
-+-----------------------------------------------------------------------------------------------+
-| CRITERIO 1.5: Evaluación y comparación entre modelos con métricas e hiperparámetros (12 Pts)  |
-+-----------------------------------------------------------------------------------------------+
-```
-* **Qué mostrar en pantalla:**
-  Copia y ejecuta en el editor de BigQuery esta consulta de evaluación:
-  ```sql
-  SELECT 
-      'Modelo 1: Linear Reg' AS modelo, 
-      ROUND(mean_absolute_error, 2) AS mae_usd, 
-      ROUND(SQRT(mean_squared_error), 2) AS rmse_usd, 
-      ROUND(r2_score, 4) AS r2_score 
-  FROM ML.EVALUATE(
-      MODEL `nyc_taxi_dw.model_fare_linear_reg`, 
-      (SELECT * FROM `nyc_taxi_dw.vw_bqml_training_data` WHERE is_eval_split = TRUE)
-  )
-  UNION ALL
-  SELECT 
-      'Modelo 2: Boosted Tree (XGBoost)' AS modelo, 
-      ROUND(mean_absolute_error, 2) AS mae_usd, 
-      ROUND(SQRT(mean_squared_error), 2) AS rmse_usd, 
-      ROUND(r2_score, 4) AS r2_score 
-  FROM ML.EVALUATE(
-      MODEL `nyc_taxi_dw.model_fare_boosted_tree`, 
-      (SELECT * FROM `nyc_taxi_dw.vw_bqml_training_data` WHERE is_eval_split = TRUE)
-  );
-  ```
-* **Qué decir:**
-  > *"Evaluamos ambos modelos mediante la función nativa `ML.EVALUATE` sobre el conjunto independiente de evaluación (Septiembre-Octubre de 2022):*
-  > - *El Boosted Tree reduce el MAE de **$1.95 a $1.62 USD** (su error promedio es de solo $1.62).*
-  > - *Reduce el RMSE de **$3.66 a $3.44 USD**.*
-  > - *Y alcanza un coeficiente $R^2$ de **0.9345**, explicando el **93.45% de la varianza total** de las tarifas.*
-  > *Justificación de selección: Seleccionamos el Boosted Tree porque el tráfico de la ciudad de Nueva York no es lineal; recorrer 2 millas en hora pico en Manhattan cuesta y tarda mucho más que de madrugada. El modelo de ensamble de árboles mapea esas interacciones complejas de forma significativamente superior a la regresión lineal."*
-* **Tabla comparativa de métricas:**
+### 1.3 Optimización con particiones y clustering (12 pts)
 
-| Métrica | Modelo 1: Regresión Lineal | Modelo 2: Boosted Tree (XGBoost) | Ganador |
+* **Script SQL:** [03_partitioning_and_clustering.sql](file:///c:/Users/Enner/Desktop/SS22S2026_G1/Proyecto_2/sql/03_partitioning_and_clustering.sql).
+* **Tabla estándar:** `tbl_yellow_trips_standard` (sin partición ni clustering).
+* **Tabla optimizada:** `tbl_yellow_trips_optimized`:
+  - `PARTITION BY DATE(tpep_pickup_datetime)`: Habilita **Partition Pruning** al filtrar por rangos de fechas.
+  - `CLUSTER BY PULocationID, DOLocationID, payment_type`: Habilita **Block Skipping** al filtrar por zonas y métodos de pago.
+
+#### 📸 Evidencia en BigQuery Console (Pestaña Detalles de la tabla optimizada):
+![Detalles Tabla Optimizada](img/03_bq_table_optimized_details.png)
+
+---
+
+### 1.4 Implementación correcta de al menos 2 modelos en BigQuery ML (8 pts)
+
+* **Script SQL:** [05_bqml_models.sql](file:///c:/Users/Enner/Desktop/SS22S2026_G1/Proyecto_2/sql/05_bqml_models.sql).
+
+#### Modelo 1: Regresión Lineal Regularizada Ridge (`model_fare_linear_reg`)
+* Algoritmo: `LINEAR_REG` con regularización L2 (`l2_reg = 0.1`) y `max_iterations = 25`.
+* Método de división: `Personalizado` (Split cronológico).
+
+![Detalles Modelo Linear Reg](img/06_bqml_model_linear_reg_details.png)
+![Hiperparámetros Linear Reg](img/06_bqml_linear_training_hyperparameters.png)
+
+#### Modelo 2: Gradient Boosted Trees (`model_fare_boosted_tree`)
+* Algoritmo: `BOOSTED_TREE_REGRESSOR` / XGBoost con `learn_rate = 0.2`, `max_tree_depth = 6`, `subsample = 0.8`, `max_iterations = 20`.
+* Método de división: `Personalizado` (Split cronológico).
+
+![Detalles Modelo Boosted Tree](img/06_bqml_model_boosted_tree_details.png)
+![Hiperparámetros Boosted Tree](img/06_bqml_training_hyperparameters.png)
+
+---
+
+### 1.5 Evaluación y comparación entre modelos con métricas e hiperparámetros (12 pts)
+
+* **Script SQL:** [06_evaluation_and_predictions.sql](file:///c:/Users/Enner/Desktop/SS22S2026_G1/Proyecto_2/sql/06_evaluation_and_predictions.sql).
+* **Función nativa:** `ML.EVALUATE` ejecutada sobre el conjunto independiente de evaluación (`is_eval_split = TRUE`).
+
+#### 📸 Evidencia en BigQuery Console (Consulta comparativa ML.EVALUATE en vivo):
+![Modelos BQML y Evaluación](img/07_bqml_model_evaluation.png)
+
+#### Tabla Comparativa Oficial de Métricas:
+| Métrica | Modelo 1: Regresión Lineal | Modelo 2: Boosted Tree (XGBoost) | Ganador Técnico |
 |---|:---:|:---:|:---:|
-| **MAE (Error Absoluto Medio)** | $1.95 USD | **$1.62 USD** | Boosted Tree |
-| **RMSE (Raíz del Error Cuadrático)** | $3.66 USD | **$3.44 USD** | Boosted Tree |
-| **$R^2$ (Varianza Explicada)** | 0.9260 (92.6%) | **0.9345 (93.45%)** | Boosted Tree |
+| **MAE (Error Absoluto Medio)** | **$1.95 USD** | **$1.62 USD** | **Boosted Tree (-$0.33)** |
+| **RMSE (Raíz Error Cuadrático)** | **$3.66 USD** | **$3.44 USD** | **Boosted Tree (-$0.22)** |
+| **$R^2$ (Coeficiente Determinación)** | **0.9260 (92.60%)** | **0.9345 (93.45%)** | **Boosted Tree (+0.85%)** |
+
+* **Justificación de selección:** En el transporte metropolitano la relación entre distancia, tráfico y horario no es lineal; el modelo de ensamble de árboles mapea esas interacciones complejas de forma significativamente superior a la regresión lineal.
 
 ---
 
-```
-+-----------------------------------------------------------------------------------------------+
-| CRITERIO 1.6: Prevención de data leakage y manejo correcto del split de datos (12 Pts)         |
-+-----------------------------------------------------------------------------------------------+
-```
-* **Qué mostrar en pantalla:**
-  Abre [sql/05_bqml_models.sql](file:///c:/Users/Enner/Desktop/SS22S2026_G1/Proyecto_2/sql/05_bqml_models.sql) y resalta las líneas 16 a 47 donde se define la vista y el parámetro `is_eval_split`.
-* **Qué decir:**
-  > *"Para prevenir fugas de información (*Data Leakage*), implementamos dos defensas metodológicas:*
-  > 
-  > 1. ***Prevención de Target Leakage (Variables Post-Evento):** Excluimos terminantemente variables que no existen al momento de abordar el taxi: `tpep_dropoff_datetime`, `trip_duration_minutes`, `tip_amount`, `tolls_amount` y `total_amount`. Solo usamos características ex-ante (hora de inicio, día, distancia estimada, zonas y si es hora pico).*
-  > 
-  > 2. ***Prevención de Temporal Leakage (Split Cronológico vs data_split_eval_fraction):** BigQuery ML utiliza por defecto `data_split_eval_fraction` con split aleatorio. En series temporales de demanda, esto es un error metodológico grave porque mezcla viajes de diciembre en el entrenamiento para predecir viajes de enero (fuga del futuro al pasado).*
-  > *Por ello, configuramos `data_split_method = 'CUSTOM'` gobernado por la columna lógica `is_eval_split`:*
-  >    - *Train Set (Ene-Ago 2022, ~70%): `is_eval_split = FALSE`.*
-  >    - *Eval Set (Sep-Oct 2022, ~15%): `is_eval_split = TRUE`.*
-  >    - *Test Set (Nov-Dic 2022, ~15%): Aislado totalmente para el Rolling Forecast."*
+### 1.6 Prevención de Data Leakage y manejo correcto del split de datos (12 pts)
+
+1. **Target Leakage (Variables Post-Evento):**
+   - **Excluidas del entrenamiento:** `tpep_dropoff_datetime`, `trip_duration_minutes`, `tip_amount`, `tolls_amount`, `total_amount`, `airport_fee`, `congestion_surcharge`.
+   - **Razón técnica:** No existen cuando el pasajero recién aborda el taxi.
+2. **Temporal Leakage (Split Cronológico vs Random Split):**
+   - Se descartó `data_split_eval_fraction` por mezclar viajes del futuro con el pasado.
+   - Se utilizó `data_split_method = 'CUSTOM'` determinista por fechas:
+     - **TRAIN (Enero a Agosto, ~70%):** 24,010,831 registros (**72.27%**).
+     - **EVAL (Septiembre a Octubre, ~15%):** 6,244,617 registros (**18.79%**).
+     - **TEST (Noviembre a Diciembre, ~15%):** 2,970,631 registros (**8.94%** aislados para el Rolling Forecast).
+
+#### 📸 Evidencia en BigQuery Console (Conteo exacto del Split sin Fuga):
+![Split Train Eval Test](img/06_split_train_eval_test.png)
 
 ---
 
-## 2. CONOCIMIENTOS (40 PUNTOS)
-
-```
-+-----------------------------------------------------------------------------------------------+
-| CRITERIO 2.1: Análisis correcto de patrones y tendencias (10 Pts)                             |
-+-----------------------------------------------------------------------------------------------+
-```
-* **Qué mostrar en pantalla:**
-  Pestaña de [Looker Studio](https://lookerstudio.google.com/reporting/6f35e95a-771b-4ab3-86b8-b912086bfdea) en la **Página 2 (EDA)**.
-* **Qué decir:**
-  > *"Del análisis exploratorio sustentamos 3 hallazgos estructurales clave del negocio:*
-  > 1. ***Patrón bimodal de demanda:** En días laborales la demanda presenta dos picos pronunciados: 8:00 AM (entrada a oficinas) y 6:00 PM (salida laboral), mientras que los fines de semana la demanda se traslada a la noche y madrugada.*
-  > 2. ***Impacto de viajes a aeropuertos:** Los viajes a JFK y LaGuardia representan solo el **7.8% del volumen**, pero generan el **22.4% de la facturación bruta** debido a las tarifas reguladas fijas y recargos oficiales.*
-  > 3. ***Dominio del cobro electrónico:** El **79.7% de las transacciones se realizan con tarjeta de crédito**, con una propina promedio del 18.5%, mientras que en efectivo la propina registrada es prácticamente cero debido al cobro directo."*
+# PARTE 2: CONOCIMIENTOS (40 PUNTOS)
 
 ---
 
-```
-+-----------------------------------------------------------------------------------------------+
-| CRITERIO 2.2: Visualización de resultados exploratorios y predicciones (10 Pts)               |
-+-----------------------------------------------------------------------------------------------+
-```
-* **Qué mostrar en pantalla:**
-  Abre [Looker Studio](https://lookerstudio.google.com/reporting/6f35e95a-771b-4ab3-86b8-b912086bfdea).
-  1. **Página 1 (Rolling Forecast):**
-     * Señala las tarjetas Scorecard: **MAE Boosted Trees ($1.66 - $1.72)**, **MAE Linear ($1.90 - $1.95)** y el total de **2,970,631 viajes evaluados**.
-     * Pasa el ratón sobre la gráfica de líneas mostrando las tres curvas: Azul (Real), Naranja (Boosted Tree) y Celeste (Linear Reg).
-  2. **Página 2 (EDA Exploratorio):**
-     * Cambia de página en el menú lateral.
-     * Muestra las 3 visualizaciones requeridas:
-       - Gráfico de barras de demanda en 24 horas del día.
-       - Gráfico circular de métodos de pago (**79.7% Tarjeta vs 20.3% Efectivo**).
-       - Gráfico de tarifa promedio por día de la semana con el control interactivo `is_weekend` (filtra por `1` para mostrar la interactividad).
-* **Qué decir:**
-  > *"Conectamos Looker Studio de forma nativa a BigQuery sin costo alguno:*
-  > - *En la Página 1 tenemos el Rolling Forecast con casi 3 millones de registros nuevos no vistos durante el entrenamiento (Noviembre-Diciembre). La curva naranja del Boosted Tree replica con gran precisión la volatilidad diaria de las tarifas reales.*
-  > - *En la Página 2 presentamos el EDA con las 3 visualizaciones solicitadas y filtros dinámicos en tiempo real."*
+### 2.1 Análisis correcto de patrones y tendencias (10 pts)
+
+* **Hallazgos clave sustentados con datos:**
+  1. **Demanda Bimodal:** Picos pronunciados de lunes a viernes: mañana (8:00 AM) y tarde (6:00 PM), desplazándose a la noche los fines de semana.
+  2. **Impacto Aeroportuario:** Viajes a JFK y LaGuardia representan apenas el **7.8% del volumen**, pero generan el **22.4% de los ingresos brutos** por tarifas fijas y recargos oficiales.
+  3. **Cobro Electrónico:** **79.7% paga con tarjeta de crédito** (propina promedio del 18.5%), frente al **20.3% en efectivo** (propina registrada nula).
+
+#### 📸 Evidencia en Looker Studio (Análisis Exploratorio de Datos - EDA):
+![Looker EDA](img/looker_eda_dashboard.png)
 
 ---
 
-```
-+-----------------------------------------------------------------------------------------------+
-| CRITERIO 2.3: Ingeniería de características y justificación de variables (10 Pts)             |
-+-----------------------------------------------------------------------------------------------+
-```
-* **Qué mostrar en pantalla:**
-  Abre la sección 6.3 del [README.md](file:///c:/Users/Enner/Desktop/SS22S2026_G1/Proyecto_2/README.md) con la tabla de variables derivadas.
-* **Qué decir:**
-  > *"Construimos **9 variables derivadas** con sólida justificación operativa y matemática:*
-  > 1. *`trip_duration_minutes`: Calculada como `TIMESTAMP_DIFF(dropoff, pickup, SECOND)/60.0`.*
-  > 2. *`trip_speed_mph`: Velocidad promedio calculada como `distancia / (minutos / 60)`. Permite descartar trayectos con velocidades anómalas superiores a 75 mph.*
-  > 3. *`pickup_hour`: Captura el ciclo circadiano horario (0 a 23h).*
-  > 4. *`pickup_day_of_week`: Modela la variación entre días hábiles y descanso.*
-  > 5. *`is_weekend`: Bandera binaria para aislar la dinámica nocturna y recreativa.*
-  > 6. *`is_rush_hour`: Horas pico laborales (7:00 a 9:30 AM y 16:00 a 19:30 PM de lunes a viernes).*
-  > 7. *`is_airport_trip`: Identifica viajes hacia JFK (132), LaGuardia (138) y Newark (1).*
-  > 8. *`tip_ratio`: Relación `tip_amount / fare_amount`.*
-  > 9. *`split_flag`: Segmentación cronológica para anular la fuga de datos en BigQuery ML."*
+### 2.2 Visualización de resultados exploratorios y predicciones (10 pts)
+
+* **Plataforma:** [Google Looker Studio Público](https://lookerstudio.google.com/reporting/6f35e95a-771b-4ab3-86b8-b912086bfdea).
+* **Página 1 (Rolling Forecast Predictivo):**
+  - Curva temporal diaria: **Tarifa Real (azul)** vs **Boosted Tree (naranja)** vs **Linear Reg (celeste)** sobre **2,970,631 viajes no vistos**.
+  - Tarjetas Scorecard con MAE promedio diario ($1.66 - $1.72).
+* **Página 2 (EDA Exploratorio):**
+  - Demanda en 24 horas, circular de métodos de pago (79.7% vs 20.3%) y tarifa semanal con filtro de fin de semana.
+
+#### 📸 Evidencia en Looker Studio (Rolling Forecast Diario):
+![Looker Forecast](img/looker_forecast_dashboard.png)
 
 ---
 
-```
-+-----------------------------------------------------------------------------------------------+
-| CRITERIO 2.4: Identificación de variables de entrada, salida y objetivo del modelo (5 Pts)    |
-+-----------------------------------------------------------------------------------------------+
-```
-* **Qué mostrar en pantalla:**
-  Abre la vista `vw_bqml_training_data` en [sql/05_bqml_models.sql](file:///c:/Users/Enner/Desktop/SS22S2026_G1/Proyecto_2/sql/05_bqml_models.sql).
-* **Qué decir:**
-  > *"Definimos con absoluta claridad los roles de cada variable:*
-  > - ***Variable Objetivo (Label / Salida):** `fare_amount` (monto base de la tarifa en USD para problema de regresión supervisada).*
-  > - ***Variables de Entrada (Features Ex-Ante):** `trip_distance`, `passenger_count`, `pickup_hour`, `pickup_day_of_week`, `is_weekend`, `is_rush_hour`, `is_airport_trip`, y las zonas como categóricas (`CAST(PULocationID AS STRING)`, `CAST(DOLocationID AS STRING)`, `CAST(RatecodeID AS STRING)`).*
-  > - ***Propósito del modelo:** Predecir con exactitud el costo del servicio al momento en que el pasajero sube al taxi, eliminando variables que solo se conocen al finalizar el trayecto."*
+### 2.3 Ingeniería de características y justificación de variables (10 pts)
+
+Se construyeron **9 variables derivadas** documentadas en [02_cleaning_and_features.sql](file:///c:/Users/Enner/Desktop/SS22S2026_G1/Proyecto_2/sql/02_cleaning_and_features.sql):
+
+| Variable Derivada | Definición SQL | Justificación Técnica y de Negocio |
+|---|---|---|
+| `trip_duration_minutes` | `TIMESTAMP_DIFF(dropoff, pickup, SECOND) / 60.0` | Medida continua del tiempo para calcular velocidad y congestión. |
+| `trip_speed_mph` | `trip_distance / (duration / 60.0)` | Filtro de sanidad para descartar anomalías de GPS (> 75 mph). |
+| `pickup_hour` | `EXTRACT(HOUR FROM pickup_datetime)` | Captura el ciclo circadiano horario de la demanda urbana (0-23h). |
+| `pickup_day_of_week` | `EXTRACT(DAYOFWEEK FROM pickup_datetime)` | Modela la variación entre días hábiles y de descanso (1=Dom, 7=Sáb). |
+| `is_weekend` | `IF(day_of_week IN (1, 7), 1, 0)` | Bandera binaria para aislar la dinámica recreativa y nocturna. |
+| `is_rush_hour` | Horario 7-9:30 AM y 16-19:30 PM (Lunes a Viernes) | Horas pico laborales con alta congestión vial e impacto en tarifas. |
+| `is_airport_trip` | Origen o destino en JFK (132), LGA (138) o EWR (1) | Identifica viajes a terminales con tarifas planas y recargos oficiales. |
+| `tip_ratio` | `SAFE_DIVIDE(tip_amount, fare_amount)` | Ratio de gratificación aportada por el cliente sobre la tarifa base. |
+| `split_flag` | Ene-Ago: TRAIN, Sep-Oct: EVAL, Nov-Dic: TEST | Segmentación cronológica estricta para anular el Data Leakage. |
+
+#### 📸 Evidencia en BigQuery Console (Variables calculadas visibles en la consulta):
+![Variables Derivadas](img/02_cleaning_and_features_table.png)
 
 ---
 
-```
-+-----------------------------------------------------------------------------------------------+
-| CRITERIO 2.5: Comparación entre consultas estándar y optimizadas (5 Pts)                      |
-+-----------------------------------------------------------------------------------------------+
-```
-* **Qué mostrar en pantalla (DEMOSTRACIÓN EN VIVO DE BYTES):**
-  1. En BigQuery Console, pega la consulta sobre la tabla **estándar**:
-     ```sql
-     SELECT COUNT(*), AVG(fare_amount), SUM(total_amount)
-     FROM `nyc_taxi_dw.tbl_yellow_trips_standard`
-     WHERE DATE(tpep_pickup_datetime) BETWEEN '2022-10-01' AND '2022-10-31';
-     ```
-     Señala arriba a la derecha: **"Esta consulta procesará 1.24 GB cuando se ejecute"**.
-  2. En el mismo editor, cambia `standard` por `optimized`:
-     ```sql
-     SELECT COUNT(*), AVG(fare_amount), SUM(total_amount)
-     FROM `nyc_taxi_dw.tbl_yellow_trips_optimized`
-     WHERE DATE(tpep_pickup_datetime) BETWEEN '2022-10-01' AND '2022-10-31';
-     ```
-     Señala arriba a la derecha: El validador cae a **127.54 MB**.
-* **Qué decir:**
-  > *"Como se aprecia en tiempo real en el validador de BigQuery para una consulta de octubre:*
-  > - *En la tabla estándar lee **1.24 GB** (escaneo de todo el año).*
-  > - *En la tabla optimizada lee apenas **127.54 MB**.*
-  > *Esto representa un **ahorro inmediato del 89.94% en bytes procesados** gracias a la poda de particiones.*
-  > *Y en nuestra segunda prueba hacia el aeropuerto JFK, el ahorro llega al **95.47%** al combinar partición con el salto de bloques por cluster. En un entorno empresarial donde se facturan $6.25 por TB, esta técnica ahorra más del 90% del presupuesto de consultas analíticas."*
-* **Tabla de Benchmarks Oficial:**
+### 2.4 Identificación correcta de variables de entrada, salida y objetivo del modelo (5 pts)
 
-| Prueba Analítica | Filtros Aplicados | Bytes Estándar | Bytes Optimizada | % Reducción de Bytes |
+* **Variable Objetivo / Salida (Label):**
+  - `predicted_fare_amount` / `fare_amount`: Monto base de la tarifa del taxímetro en USD (regresión supervisada).
+* **Variables Predictoras de Entrada (Features Ex-Ante):**
+  - Numéricas: `trip_distance`, `passenger_count`, `pickup_hour`, `pickup_day_of_week`.
+  - Banderas: `is_weekend`, `is_rush_hour`, `is_airport_trip`.
+  - Categóricas: `pu_location_cat`, `do_location_cat`, `rate_code_cat`.
+
+#### 📸 Evidencia en BigQuery Console (Feature Columns y Label Column de ambos modelos):
+| Modelo 1: Regresión Lineal | Modelo 2: Boosted Trees |
+|:---:|:---:|
+| ![Features Linear Reg](img/06_bqml_linear_features_and_label.png) | ![Features Boosted Tree](img/06_bqml_features_and_label.png) |
+
+---
+
+### 2.5 Comparación entre consultas estándar y optimizadas (5 pts)
+
+* **Script SQL:** [04_benchmark_comparison.sql](file:///c:/Users/Enner/Desktop/SS22S2026_G1/Proyecto_2/sql/04_benchmark_comparison.sql).
+* **Script automatizado:** [run_benchmark.py](file:///c:/Users/Enner/Desktop/SS22S2026_G1/Proyecto_2/scripts/run_benchmark.py).
+
+#### 📸 Evidencia Comparativa en Vivo (Misma consulta en ambas tablas):
+
+| Consulta Estándar (`tbl_yellow_trips_standard`) | Consulta Optimizada (`tbl_yellow_trips_optimized`) |
+|:---:|:---:|
+| ![Consulta Estándar](img/04_benchmark_query_bytes_standard.png) | ![Consulta Optimizada](img/05_benchmark_query_bytes_optimized.png) |
+| **Escaneo: 1.24 GB** (Full Scan del año completo) | **Escaneo: 127.54 MB** (Partition Pruning activo) |
+
+#### Tabla Oficial de Reducción de Bytes:
+| Consulta del Benchmark | Filtro Aplicado | Bytes Estándar | Bytes Optimizada | % Ahorro de Bytes |
 |---|---|:---:|:---:|:---:|
 | **Query 1: Filtro Temporal** | Octubre 2022 (31 días) | **1.24 GB** | **127.54 MB** | **89.94%** |
 | **Query 2: Temporal + Geográfico** | Viajes a JFK en Septiembre | **2.23 GB** | **103.44 MB** | **95.47%** |
-| **Query 3: Agregación Compleja** | Zonas top Manhattan y horas pico | **1.98 GB** | **171.22 MB** | **91.56%** |
+| **Query 3: Agregación Multidimensional** | Zonas top Manhattan y horas pico | **1.98 GB** | **171.22 MB** | **91.56%** |
 
 ---
 
-## 3. CONSULTAS SQL DE EMERGENCIA (COPIAR Y PEGAR EN VIVO)
+# PARTE 3: AUTOMATIZACIÓN Y REPRODUCIBILIDAD (ENTREGABLE TÉCNICO)
 
-Ten estas 3 consultas listas en una pestaña de BigQuery por si te piden ejecutarlas al instante:
+* **Orquestador:** Apache Airflow 2.9 contenerizado en Docker.
+* **DAG:** `dag_nyc_taxi_bigquery_pipeline` ([dags/dag_nyc_taxi_bigquery_pipeline.py](file:///c:/Users/Enner/Desktop/SS22S2026_G1/Proyecto_2/dags/dag_nyc_taxi_bigquery_pipeline.py)).
+* **Idempotencia:** Todas las operaciones de creación de tablas y modelos utilizan sentencias `CREATE OR REPLACE`.
 
-### Consulta A: Validación del Conteo Público (> 36M)
-```sql
-SELECT COUNT(*) AS total_registros
-FROM `bigquery-public-data.new_york_taxi_trips.tlc_yellow_trips_2022`;
-```
-
-### Consulta B: Prueba de Bytes (Estándar vs Optimizada)
-```sql
--- Ejecutar primero estándar y luego cambiar la palabra a optimized:
-SELECT COUNT(*), AVG(fare_amount), SUM(total_amount)
-FROM `nyc_taxi_dw.tbl_yellow_trips_optimized`
-WHERE DATE(tpep_pickup_datetime) BETWEEN '2022-10-01' AND '2022-10-31';
-```
-
-### Consulta C: Métricas Comparativas de los Modelos de BQML
-```sql
-SELECT 'Modelo 1: Linear Reg' AS modelo, ROUND(mean_absolute_error, 2) AS mae, ROUND(SQRT(mean_squared_error), 2) AS rmse, ROUND(r2_score, 4) AS r2 
-FROM ML.EVALUATE(MODEL `nyc_taxi_dw.model_fare_linear_reg`, (SELECT * FROM `nyc_taxi_dw.vw_bqml_training_data` WHERE is_eval_split = TRUE))
-UNION ALL
-SELECT 'Modelo 2: Boosted Tree' AS modelo, ROUND(mean_absolute_error, 2) AS mae, ROUND(SQRT(mean_squared_error), 2) AS rmse, ROUND(r2_score, 4) AS r2 
-FROM ML.EVALUATE(MODEL `nyc_taxi_dw.model_fare_boosted_tree`, (SELECT * FROM `nyc_taxi_dw.vw_bqml_training_data` WHERE is_eval_split = TRUE));
-```
-
----
-
-## 4. BANCO DE PREGUNTAS TRAMPA DEL AUXILIAR
-
-* **P: "¿Por qué particionaron por día y no por mes?"**
-  > **R:** *"Porque las consultas analíticas y de auditoría de transporte operan sobre fechas concretas, fines de semana o quincenas. Si particionáramos por mes, cualquier consulta sobre un rango de 3 o 4 días obligaría a leer el mes completo. La partición diaria divide los datos en 365 bloques físicos contiguos, permitiendo podar con precisión y reducir los bytes leídos en casi un 90%."*
-
-* **P: "¿Por qué no incluyeron la duración del viaje (`trip_duration_minutes`) en el modelo de ML?"**
-  > **R:** *"Porque cometeríamos **Target Data Leakage**. La duración real del viaje solo se conoce cuando el pasajero se baja del taxi. Si la incluyéramos en el entrenamiento, el modelo tendría una precisión falsamente perfecta en laboratorio, pero al ponerlo en producción para predecir la tarifa cuando el usuario aborda el taxi, el modelo fallaría porque ese dato no existe."*
-
-* **P: "¿Por qué rechazaron `data_split_eval_fraction`?"**
-  > **R:** *"Porque `data_split_eval_fraction` utiliza un split aleatorio (Random Split). En series temporales de demanda, el split aleatorio mezcla viajes de noviembre y diciembre en el conjunto de entrenamiento para intentar predecir viajes de enero y febrero. Eso es **Temporal Leakage** (fuga del futuro al pasado). Por eso usamos `data_split_method = 'CUSTOM'` determinista por meses: Ene-Ago entrena, Sep-Oct evalúa y Nov-Dic prueba."*
-
-* **P: "¿Por qué el Boosted Tree fue mejor que la Regresión Lineal?"**
-  > **R:** *"La regresión lineal asume relaciones estrictamente lineales y aditivas. En el tráfico real de Nueva York, la relación entre distancia, hora y costo no es lineal: recorrer 2 millas en hora pico en Manhattan a las 8 AM cuesta y demora mucho más que recorrerlas a las 3 AM. El Boosted Tree (XGBoost) captura árboles de decisión que dividen no linealidades y combinaciones complejas de zonas y horarios, alcanzando un $R^2$ de 0.93 frente a 0.92 de la regresión."*
-
+#### 📸 Evidencia de Ejecución Exitosa en Apache Airflow:
+![Airflow DAG Success](img/08_airflow_dag_success.png)
