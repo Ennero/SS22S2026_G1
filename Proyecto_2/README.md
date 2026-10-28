@@ -70,6 +70,8 @@ SELECT
 FROM `bigquery-public-data.new_york_taxi_trips.tlc_yellow_trips_2022`;
 ```
 
+![Consola de BigQuery: Dataset nyc_taxi_dw con Tablas y Modelos BQML](img/01_bq_dataset_tables.png)
+
 ---
 
 ## 4. ARQUITECTURA GENERAL DE LA SOLUCIÓN
@@ -161,8 +163,12 @@ Proyecto_2/
 │   └── run_benchmark.py              # Medición programática de bytes leídos y tiempos
 ├── docs/
 │   ├── 798_Proyecto_2_2S2026.docx.pdf # Enunciado oficial del curso
-│   └── proyecto2.md                  # Especificaciones y rúbrica del proyecto
+│   ├── proyecto2.md                  # Especificaciones y rúbrica del proyecto
+│   └── INFORME_TECNICO_PROYECTO_2.md # Informe técnico formal y memoria completa de entrega
 └── img/                              # Evidencias técnicas requeridas por la rúbrica
+    ├── 01_bq_dataset_tables.png      # Captura de BigQuery Console con dataset, tablas y modelos
+    ├── looker_forecast_dashboard.png # Tablero de Rolling Forecast en Looker Studio
+    └── looker_eda_dashboard.png      # Tablero de EDA en Looker Studio
 ```
 
 ---
