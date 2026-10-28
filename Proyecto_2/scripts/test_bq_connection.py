@@ -34,7 +34,13 @@ def test_connection():
 
     try:
         from google.cloud import bigquery
-        client = bigquery.Client(project=project_id)
+        try:
+            client = bigquery.Client(project=project_id)
+        except Exception:
+            import subprocess
+            from google.oauth2.credentials import Credentials
+            token = subprocess.check_output("gcloud auth print-access-token", shell=True, text=True).strip()
+            client = bigquery.Client(project=project_id, credentials=Credentials(token))
         print("\n[+] Cliente BigQuery inicializado con éxito.")
 
         # 1. Validar acceso al dataset público
