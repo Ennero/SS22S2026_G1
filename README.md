@@ -1,4 +1,23 @@
-# Seminario de Sistemas 2 — Grupo 1
+<div align="center">
+
+# 🌪️ Data Engineering Pipeline with Apache Airflow & DBT (SS2)
+
+**Pipeline analítico de datos de alto rendimiento: orquestación con Apache Airflow, transformaciones con DBT y Docker.**
+
+[![Language](https://img.shields.io/badge/Language-Python,%20Docker,%20SQL-blue?style=for-the-badge)](https://github.com/Ennero/SS22S2026_G1)
+[![Course](https://img.shields.io/badge/Course-Software%20Avanzado%202-003366?style=for-the-badge)](https://ingenieria.usac.edu.gt/)
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg?style=for-the-badge)](LICENSE)
+
+</div>
+
+---
+
+
+## 📌 Contexto Académico
+
+Proyecto desarrollado en el marco del curso **Software Avanzado 2** de la carrera de Ingeniería en Ciencias y Sistemas en la Universidad de San Carlos de Guatemala (USAC).
+
+---
 
 Repositorio del **Grupo 1** del curso **Seminario de Sistemas 2** (ciclo 2026). Aquí se entregan las prácticas y tareas del semestre: pipelines de datos, calidad de información y análisis para soporte a la toma de decisiones.
 
@@ -40,3 +59,16 @@ SS22S2026_G1/
 ├── Tarea1/                ← Limpieza y análisis con Pandas
 └── Proyecto_2/            ← BigQuery, Optimización, BQML & Airflow
 ```
+
+---
+
+## 📄 Licencia
+
+Este proyecto está bajo la Licencia **MIT**. Consulta el archivo [LICENSE](LICENSE) para más detalles.
+
+---
+
+## 👨‍💻 Autor
+
+- **Enner Mendizabal** - [@Ennero](https://github.com/Ennero)  
+- *Facultad de Ingeniería, Universidad de San Carlos de Guatemala.*
