@@ -179,7 +179,7 @@ Elimina contenedores, redes y los volúmenes persistentes con datos para reinici
 
 ## PIPELINE DE APACHE AIRFLOW (DETALLE DE LAS 13 TAREAS Y OBSERVABILIDAD)
 
-El DAG `sgfood_elt_pipeline` en [dags/sgfood_elt_pipeline.py](file:///c:/Users/Enner/Desktop/SS22S2026_G1/Proyecto1/dags/sgfood_elt_pipeline.py) coordina el flujo de datos completo, garantizando orden cronológico, ejecución paralela cuando es viable, tolerancia a fallos, reintentos e idempotencia.
+El DAG `sgfood_elt_pipeline` en [dags/sgfood_elt_pipeline.py](dags/sgfood_elt_pipeline.py) coordina el flujo de datos completo, garantizando orden cronológico, ejecución paralela cuando es viable, tolerancia a fallos, reintentos e idempotencia.
 
 ### Diagrama de Flujo y Dependencias del DAG
 
@@ -213,7 +213,7 @@ El DAG `sgfood_elt_pipeline` en [dags/sgfood_elt_pipeline.py](file:///c:/Users/E
 
 ## CONSULTAS ANALÍTICAS Y RESPUESTAS DE NEGOCIO (8 QUERIES EXPLICADAS)
 
-A continuación se detallan las 8 consultas analíticas oficiales implementadas en [sql/analytics_queries.sql](file:///home/dadev/Escritorio/SS22S2026_G1/Proyecto1/sql/analytics_queries.sql), explicando su propósito de negocio, el código SQL y la evidencia real de los resultados obtenidos directamente desde la base de datos `sgfood_dw`:
+A continuación se detallan las 8 consultas analíticas oficiales implementadas en [sql/analytics_queries.sql](sql/analytics_queries.sql), explicando su propósito de negocio, el código SQL y la evidencia real de los resultados obtenidos directamente desde la base de datos `sgfood_dw`:
 
 ### Cómo Ejecutar las Consultas Analíticas en el Contenedor
 
@@ -546,14 +546,14 @@ ORDER BY facturacion_total DESC;
 
 ## CONEXIÓN Y BUSINESS INTELLIGENCE CON POWER BI (REQUERIMIENTO OPCIONAL / PLUS)
 
-El Data Warehouse analítico de SG-Food está 100% preparado para ser explotado visualmente desde **Microsoft Power BI Desktop**. Se cuenta con una guía dedicada exhaustiva en [powerbi/guia_configuracion_powerbi.md](file:///c:/Users/Enner/Desktop/SS22S2026_G1/Proyecto1/powerbi/guia_configuracion_powerbi.md) que contiene:
+El Data Warehouse analítico de SG-Food está 100% preparado para ser explotado visualmente desde **Microsoft Power BI Desktop**. Se cuenta con una guía dedicada exhaustiva en [powerbi/guia_configuracion_powerbi.md](powerbi/guia_configuracion_powerbi.md) que contiene:
 - **Parámetros de conexión:** Host `localhost:5432`, BD `sgfood_dw`, usuario `postgres`, esquema `marts`.
 - **Modelo Relacional en Estrella:** Cardinalidad 1 a Varios (1:N) con dirección de filtro único entre las 8 dimensiones y 4 hechos.
 - **21 Medidas DAX Formuladas:** Ventas Netas, Margen Bruto Q, % Margen, Ticket Promedio, Stock Crítico, Lotes Próximos a Vencer, % Cumplimiento de Metas con semáforos, Tasa de Devoluciones.
 - **Estructura de 3 Dashboards Interactivos:** Panel Ejecutivo Financiero, Control de Logística/Vencimientos y Rendimiento Comercial/Calidad.
 - **Respuestas a preguntas clave de evaluación** para sustentar la arquitectura ante el docente.
 
-Para la guía paso a paso, consulta: [powerbi/guia_configuracion_powerbi.md](file:///c:/Users/Enner/Desktop/SS22S2026_G1/Proyecto1/powerbi/guia_configuracion_powerbi.md).
+Para la guía paso a paso, consulta: [powerbi/guia_configuracion_powerbi.md](powerbi/guia_configuracion_powerbi.md).
 
 ---
 

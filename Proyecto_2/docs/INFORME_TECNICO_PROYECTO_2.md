@@ -145,7 +145,7 @@ El análisis de telemetría a gran escala presenta dos retos fundamentales:
 
 ## 5. FASE 1: AUDITORÍA DE CALIDAD Y EXPLORACIÓN INICIAL (EDA)
 
-Durante la fase de exploración ([sql/01_exploration.sql](file:///c:/Users/Enner/Desktop/SS22S2026_G1/Proyecto_2/sql/01_exploration.sql)) se realizó un perfilado exhaustivo sobre el dataset público:
+Durante la fase de exploración ([sql/01_exploration.sql](../sql/01_exploration.sql)) se realizó un perfilado exhaustivo sobre el dataset público:
 
 1. **Auditoría de Nulos:** Se verificó la completitud de variables críticas como `vendor_id`, `pickup_datetime`, `dropoff_datetime`, `fare_amount` y `payment_type`.
 2. **Detección de Anomalías Físicas y Mecánicas:**
@@ -159,7 +159,7 @@ Durante la fase de exploración ([sql/01_exploration.sql](file:///c:/Users/Enner
 
 ## 6. FASE 2: DEPURACIÓN, LIMPIEZA E INGENIERÍA DE CARACTERÍSTICAS
 
-En el script [sql/02_cleaning_and_features.sql](file:///c:/Users/Enner/Desktop/SS22S2026_G1/Proyecto_2/sql/02_cleaning_and_features.sql) se construyó la tabla depurada `nyc_taxi_dw.tbl_yellow_trips_clean` (**33,226,079 filas**), descartando registros anómalos y calculando variables derivadas:
+En el script [sql/02_cleaning_and_features.sql](../sql/02_cleaning_and_features.sql) se construyó la tabla depurada `nyc_taxi_dw.tbl_yellow_trips_clean` (**33,226,079 filas**), descartando registros anómalos y calculando variables derivadas:
 
 ### Matriz de Ingeniería de Características (Feature Engineering)
 
@@ -179,7 +179,7 @@ En el script [sql/02_cleaning_and_features.sql](file:///c:/Users/Enner/Desktop/S
 
 ## 7. FASE 3: OPTIMIZACIÓN FÍSICA DE ALMACENAMIENTO (PARTICIONAMIENTO Y CLUSTERING)
 
-En BigQuery, los datos residen en almacenamiento columnar (*Capacitor*). Para optimizar los costos de escaneo, se definieron dos tablas derivadas con el mismo volumen de datos en [sql/03_partitioning_and_clustering.sql](file:///c:/Users/Enner/Desktop/SS22S2026_G1/Proyecto_2/sql/03_partitioning_and_clustering.sql):
+En BigQuery, los datos residen en almacenamiento columnar (*Capacitor*). Para optimizar los costos de escaneo, se definieron dos tablas derivadas con el mismo volumen de datos en [sql/03_partitioning_and_clustering.sql](../sql/03_partitioning_and_clustering.sql):
 
 1. **Tabla Estándar (Baseline):** `nyc_taxi_dw.tbl_yellow_trips_standard` (almacenamiento no particionado ni clusterizado, 10.74 GB).
 2. **Tabla Optimizada:** `nyc_taxi_dw.tbl_yellow_trips_optimized` (10.74 GB lógicos):
@@ -192,7 +192,7 @@ En BigQuery, los datos residen en almacenamiento columnar (*Capacitor*). Para op
 
 ## 8. FASE 4: BENCHMARKING CUANTITATIVO Y CONTROL DE COSTOS CLOUD
 
-Se ejecutó la batería de tres consultas analíticas idénticas en ambas tablas ([sql/04_benchmark_comparison.sql](file:///c:/Users/Enner/Desktop/SS22S2026_G1/Proyecto_2/sql/04_benchmark_comparison.sql)), auditadas mediante el script automatizado [scripts/run_benchmark.py](file:///c:/Users/Enner/Desktop/SS22S2026_G1/Proyecto_2/scripts/run_benchmark.py):
+Se ejecutó la batería de tres consultas analíticas idénticas en ambas tablas ([sql/04_benchmark_comparison.sql](../sql/04_benchmark_comparison.sql)), auditadas mediante el script automatizado [scripts/run_benchmark.py](../scripts/run_benchmark.py):
 
 | Consulta Analítica | Filtros y Agregaciones | Bytes en Tabla Estándar | Bytes en Tabla Optimizada | % Reducción de Bytes | Ahorro y Mecanismo Técnico |
 |---|---|---|---|---|---|
@@ -270,7 +270,7 @@ Con `ML.PREDICT` se realizaron predicciones sobre el conjunto de prueba (Noviemb
 
 ## 12. FASE 8: ORQUESTACIÓN AUTOMATIZADA CON APACHE AIRFLOW Y DOCKER
 
-El archivo [dags/dag_nyc_taxi_bigquery_pipeline.py](file:///c:/Users/Enner/Desktop/SS22S2026_G1/Proyecto_2/dags/dag_nyc_taxi_bigquery_pipeline.py) automatiza el flujo completo:
+El archivo [dags/dag_nyc_taxi_bigquery_pipeline.py](../dags/dag_nyc_taxi_bigquery_pipeline.py) automatiza el flujo completo:
 
 ```mermaid
 flowchart LR

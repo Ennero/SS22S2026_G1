@@ -229,7 +229,7 @@ ADMINER_PORT=8081
 ### 4.3 Manejo Crítico de Versión de Dependencias
 > [!IMPORTANT]
 > **Compatibilidad SQLAlchemy / Airflow:**  
-> Apache Airflow 2.9 utiliza internamente SQLAlchemy 1.4 y falla con SQLAlchemy 2.0 (`AttributeError: 'Session' object has no attribute 'get_bind'` en modelos ORM de Airflow). Por tanto, en [requirements.txt](file:///home/dadev/Escritorio/SS22S2026_G1/Proyecto1/requirements.txt) se fijó explícitamente:
+> Apache Airflow 2.9 utiliza internamente SQLAlchemy 1.4 y falla con SQLAlchemy 2.0 (`AttributeError: 'Session' object has no attribute 'get_bind'` en modelos ORM de Airflow). Por tanto, en [requirements.txt](requirements.txt) se fijó explícitamente:
 > ```text
 > dbt-core==1.8.2
 > dbt-postgres==1.8.2
@@ -339,7 +339,7 @@ Combina entidades y calcula métricas complejas previas a las tablas de hechos:
 
 ### 6.5 Capa Marts: Modelo Dimensional en Esquema Estrella (`models/marts/`)
 
-![Modelo Dimensional SG-Food](img/modelo_dimensional.jpg)
+![Modelo Dimensional SG-Food](img/modelo_dimensional.png)
 
 Las tablas en esta capa están materializadas físicamente como `table` para optimizar consultas analíticas y rendimiento en Power BI.
 
@@ -390,7 +390,7 @@ Done. PASS=92 WARN=0 ERROR=0 SKIP=0 TOTAL=92
 ## 8. FASE 5: ORQUESTACIÓN AUTOMATIZADA CON APACHE AIRFLOW
 
 ### 8.1 Definición del DAG: `sgfood_elt_pipeline`
-El pipeline está definido en [dags/sgfood_elt_pipeline.py](file:///home/dadev/Escritorio/SS22S2026_G1/Proyecto1/dags/sgfood_elt_pipeline.py).
+El pipeline está definido en [dags/sgfood_elt_pipeline.py](dags/sgfood_elt_pipeline.py).
 - **ID:** `sgfood_elt_pipeline`
 - **Schedule:** Programado diariamente a las 11:00 AM (`schedule_interval="0 11 * * *"`, parametrizable vía `AIRFLOW_SCHEDULE_INTERVAL`) para cumplir con los requerimientos opcionales de automatización.
 - **Catchup:** `False`
@@ -448,7 +448,7 @@ ESTADO FINAL DEL DAG RUN: SUCCESS (Tiempo total: 43.18 segundos)
 
 ## 9. FASE 6: CONSULTAS ANALÍTICAS Y VERIFICACIÓN DE NEGOCIO
 
-El archivo [sql/analytics_queries.sql](file:///home/dadev/Escritorio/SS22S2026_G1/Proyecto1/sql/analytics_queries.sql) implementa 8 consultas de analítica avanzada que resuelven los principales problemas de negocio de SG-Food:
+El archivo [sql/analytics_queries.sql](sql/analytics_queries.sql) implementa 8 consultas de analítica avanzada que resuelven los principales problemas de negocio de SG-Food:
 
 ### Consulta 1: Resumen de Ventas por Sucursal y Categoría
 Permite a la gerencia identificar los departamentos más rentables y la categoría líder en cada región:

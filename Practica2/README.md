@@ -399,7 +399,7 @@ docker compose run --rm etl
 5. Seleccionar las 7 tablas del modelo y presionar **Cargar**.
 6. Guardar el proyecto como `Practica2/VuelosDW.pbix`.
 
-> Consulta detallada de pasos y queries de validación en: [powerbi/guia_configuracion.md](file:///c:/Users/Enner/Desktop/SS22S2026_G1/Practica2/powerbi/guia_configuracion.md).
+> Consulta detallada de pasos y queries de validación en: [powerbi/guia_configuracion.md](powerbi/guia_configuracion.md).
 
 ---
 

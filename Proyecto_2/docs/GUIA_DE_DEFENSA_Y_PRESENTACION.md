@@ -229,4 +229,4 @@ Ten preparadas estas respuestas directas y seguras:
 * **Si el validador de BigQuery no carga los bytes en vivo:**
   * Corre en la terminal: `python scripts/run_benchmark.py` y muéstrale la tabla impresa en consola que lee directamente de la API de BigQuery.
 * **Si te piden el informe formal:**
-  * Abre el archivo [docs/INFORME_TECNICO_PROYECTO_2.md](file:///c:/Users/Enner/Desktop/SS22S2026_G1/Proyecto_2/docs/INFORME_TECNICO_PROYECTO_2.md) que contiene los 15 capítulos académicos detallados.
+  * Abre el archivo [docs/INFORME_TECNICO_PROYECTO_2.md](INFORME_TECNICO_PROYECTO_2.md) que contiene los 15 capítulos académicos detallados.
